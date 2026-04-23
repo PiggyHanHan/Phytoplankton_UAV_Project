@@ -1,0 +1,1 @@
+from weather_classifier.inference import get_default_model,predict_weather
