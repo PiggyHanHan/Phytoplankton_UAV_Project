@@ -1,4 +1,4 @@
-# models/weather_classifier/test.py
+#models/weather_classifier/test.py
 import os
 import torch
 import torch.nn as nn
