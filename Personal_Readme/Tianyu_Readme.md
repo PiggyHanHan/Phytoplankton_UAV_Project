@@ -10,7 +10,8 @@
 3. 推理链路：输入图像 + 元数据 → 天气分类 → 调用对应分割模型 → 输出掩码图与量化结果。面积计算通过读取元数据中的 GSD 完成，不在模型内部进行。
 4. 量化计算：浮游植物覆盖面积、占比、浓度等级，这些数值写入 `outputs/quantifications/`。
 5. **空间仿真脚本开发**：编写 `utils/simulation/generate_prediction_mask.py`，实现基于基准掩码和面积变化率（如 +30%）的形态学膨胀/腐蚀，生成预测分布图。附带详细调用说明，交付刘俊辉使用。
-6. 数据格式规范制定：约定 `outputs/masks/` 的命名规则和 `outputs/quantifications/` 的 JSON 字段，保证展示组可无障碍读取。
+6. **正射校正脚本开发与交付**：编写 `utils/preprocess/orthorectify.py`，基于无人机飞行参数对原始RAW图像进行几何校正，输出正射PNG图像及含GSD的元数据文件。该脚本交付数据模块（贺一冉）执行，需附带使用说明。
+7. 数据格式规范制定：约定 `outputs/masks/` 的命名规则和 `outputs/quantifications/` 的 JSON 字段，保证展示组可无障碍读取。
 
 ❌ **绝不涉及**
 - 不参与任何原始图像采集、预处理。
@@ -72,6 +73,7 @@
 2. 三个 DeepLabV3+ 分割模型权重（`models/deeplabv3plus/{weather}/best_model.pth`）及训练脚本。
 3. 总推理脚本 `models/predict_pipeline.py`。
 4. 空间仿真脚本 `utils/simulation/generate_prediction_mask.py` 及详细使用说明。
-5. 实测分割掩码图（`outputs/masks/`）与量化数据（`outputs/quantifications/`）。
-6. `outputs/` 数据格式规范文档。
-7. 模型评估报告。
+5. 正射校正脚本（`utils/preprocess/orthorectify.py`）及使用说明。
+6. 实测分割掩码图（`outputs/masks/`）与量化数据（`outputs/quantifications/`）。
+7. outputs/` 数据格式规范文档。
+8. 模型评估报告。
