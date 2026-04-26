@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="改动方案4.25">
+    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="4.26新增基线对比">
+      <change afterPath="$PROJECT_DIR$/Personal_Readme/Junhui_Readme.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -297,7 +299,23 @@
       <option name="project" value="LOCAL" />
       <updated>1777106725978</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="改动方案4.25">
+      <option name="closed" value="true" />
+      <created>1777165177784</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1777165177784</updated>
+    </task>
+    <task id="LOCAL-00012" summary="4.26新增基线对比">
+      <option name="closed" value="true" />
+      <created>1777165230524</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1777165230524</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -308,7 +326,8 @@
     <MESSAGE value="无" />
     <MESSAGE value="改动方案4.24" />
     <MESSAGE value="改动方案4.25" />
-    <option name="LAST_COMMIT_MESSAGE" value="改动方案4.25" />
+    <MESSAGE value="4.26新增基线对比" />
+    <option name="LAST_COMMIT_MESSAGE" value="4.26新增基线对比" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
