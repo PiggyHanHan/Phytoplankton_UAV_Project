@@ -4,8 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.2 多模态（条件语义分割）升级方案考量">
-      <change afterPath="$PROJECT_DIR$/TIMELINE.md" afterDir="false" />
+    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.2 时间规划">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Personal_Readme/Yiran_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Yiran_Readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Personal_Readme/Zige_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Zige_Readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TIMELINE.md" beforeDir="false" afterPath="$PROJECT_DIR$/TIMELINE.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -235,7 +240,8 @@
       <workItem from="1777385969114" duration="37000" />
       <workItem from="1777386136781" duration="33000" />
       <workItem from="1777386204558" duration="9000" />
-      <workItem from="1777731707528" duration="1159000" />
+      <workItem from="1777731707528" duration="1505000" />
+      <workItem from="1777735108268" duration="308000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -349,7 +355,31 @@
       <option name="project" value="LOCAL" />
       <updated>1777732217881</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="5.2 多模态（条件语义分割）升级方案考量">
+      <option name="closed" value="true" />
+      <created>1777733538504</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1777733538504</updated>
+    </task>
+    <task id="LOCAL-00016" summary="5.2 时间规划">
+      <option name="closed" value="true" />
+      <created>1777733557429</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1777733557429</updated>
+    </task>
+    <task id="LOCAL-00017" summary="5.2 时间规划">
+      <option name="closed" value="true" />
+      <created>1777733733761</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1777733733761</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -366,7 +396,8 @@
     <MESSAGE value="4.26新增基线对比" />
     <MESSAGE value="4.26基线对比 双数学建模" />
     <MESSAGE value="5.2 多模态（条件语义分割）升级方案考量" />
-    <option name="LAST_COMMIT_MESSAGE" value="5.2 多模态（条件语义分割）升级方案考量" />
+    <MESSAGE value="5.2 时间规划" />
+    <option name="LAST_COMMIT_MESSAGE" value="5.2 时间规划" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
