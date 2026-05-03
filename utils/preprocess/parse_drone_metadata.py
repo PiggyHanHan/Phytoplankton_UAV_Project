@@ -17,6 +17,31 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
+import shutil
+
+def find_exiftool() -> str:
+    """查找 exiftool 可执行文件路径"""
+    # 1. 尝试从环境变量 EXIFTOOL_PATH 获取
+    path = os.environ.get("EXIFTOOL_PATH")
+    if path and os.path.isfile(path):
+        return path
+    # 2. 尝试系统 PATH 中查找
+    path = shutil.which("exiftool")
+    if path:
+        return path
+    # 3. Windows 常见安装位置
+    common_paths = [
+        r"C:\exiftool\exiftool.exe",
+        r"C:\Program Files\exiftool\exiftool.exe",
+        r"C:\tools\exiftool.exe",
+    ]
+    for p in common_paths:
+        if os.path.isfile(p):
+            return p
+    raise RuntimeError(
+        "找不到 exiftool，请将 exiftool.exe 所在目录加入系统 PATH，"
+        "或设置环境变量 EXIFTOOL_PATH 指向它的完整路径。"
+    )
 
 logger = logging.getLogger("parse_drone_metadata")
 logger.setLevel(logging.INFO)
@@ -273,7 +298,8 @@ def parse_drone_metadata_from_image(image_path: str,
         raise FileNotFoundError(f"图像文件不存在: {image_path}")
 
     # 调用 exiftool
-    cmd = ["exiftool", "-json", "-G", "-n", image_path]
+    exiftool_path = find_exiftool()
+    cmd = [exiftool_path, "-json", "-G", "-n", image_path]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True,
                                 timeout=30)
@@ -308,35 +334,50 @@ def parse_drone_metadata_from_image(image_path: str,
         return None
 
     # 通用相机信息
+    # 传感器物理尺寸：优先从 EXIF 专用标签获取，如果没有，就留空交由品牌映射表自动补全
+    sensor_width_raw = get_tag("EXIF:FocalPlaneXResolution")  # 某些相机可能用这个标签
+    sensor_height_raw = get_tag("EXIF:FocalPlaneYResolution")
     camera = CameraInfo(
         make=get_tag("EXIF:Make", "MakerNotes:Make"),
         model=get_tag("EXIF:Model", "MakerNotes:Model"),
         focal_length=safe_float(get_tag("EXIF:FocalLength"), default=None),
-        sensor_width=safe_float(get_tag("EXIF:ExifImageWidth"), default=None),  # 通常非物理尺寸，需特征库补充
-        sensor_height=safe_float(get_tag("EXIF:ExifImageHeight"), default=None),
+        sensor_width=safe_float(sensor_width_raw, default=None),
+        sensor_height=safe_float(sensor_height_raw, default=None),
         image_width=safe_int(get_tag("EXIF:ImageWidth", "File:ImageWidth")),
         image_height=safe_int(get_tag("EXIF:ImageHeight", "File:ImageHeight")),
         white_balance=str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "Unknown"),
-        dewarp_data=get_tag("XMP-drone-dji:DewarpData")  # DJI 专用
+        dewarp_data=get_tag("XMP-drone-dji:DewarpData")
     )
 
     # 品牌特有标签补充
     if brand == "DJI":
+        def get_dji(prefixed, plain):
+            # 1. 标准 XMP-drone-dji 前缀
+            val = get_tag(prefixed)
+            if val is not None:
+                return val
+            # 2. XMP 通用前缀（exiftool -G 可能把自定义标签归到 XMP:）
+            val = get_tag("XMP:" + plain)
+            if val is not None:
+                return val
+            # 3. 完全无前缀（仅当 exiftool 未加 -G 时可能出现）
+            return get_tag(plain)
+
         gps = GPSInfo(
-            latitude=safe_float(get_tag("XMP-drone-dji:GPSLatitude")),
-            longitude=safe_float(get_tag("XMP-drone-dji:GPSLongitude")),
-            absolute_altitude=safe_float(get_tag("XMP-drone-dji:AbsoluteAltitude")),
-            relative_altitude=safe_float(get_tag("XMP-drone-dji:RelativeAltitude"))
+            latitude=safe_float(get_dji("XMP-drone-dji:GPSLatitude", "GPSLatitude")),
+            longitude=safe_float(get_dji("XMP-drone-dji:GPSLongitude", "GPSLongitude")),
+            absolute_altitude=safe_float(get_dji("XMP-drone-dji:AbsoluteAltitude", "AbsoluteAltitude")),
+            relative_altitude=safe_float(get_dji("XMP-drone-dji:RelativeAltitude", "RelativeAltitude"))
         )
         attitude = AttitudeInfo(
-            roll=safe_float(get_tag("XMP-drone-dji:FlightRollDegree")),
-            pitch=safe_float(get_tag("XMP-drone-dji:FlightPitchDegree")),
-            yaw=safe_float(get_tag("XMP-drone-dji:FlightYawDegree"))
+            roll=safe_float(get_dji("XMP-drone-dji:FlightRollDegree", "FlightRollDegree")),
+            pitch=safe_float(get_dji("XMP-drone-dji:FlightPitchDegree", "FlightPitchDegree")),
+            yaw=safe_float(get_dji("XMP-drone-dji:FlightYawDegree", "FlightYawDegree"))
         )
         gimbal = GimbalInfo(
-            roll=safe_float(get_tag("XMP-drone-dji:GimbalRollDegree")),
-            pitch=safe_float(get_tag("XMP-drone-dji:GimbalPitchDegree")),
-            yaw=safe_float(get_tag("XMP-drone-dji:GimbalYawDegree"))
+            roll=safe_float(get_dji("XMP-drone-dji:GimbalRollDegree", "GimbalRollDegree")),
+            pitch=safe_float(get_dji("XMP-drone-dji:GimbalPitchDegree", "GimbalPitchDegree")),
+            yaw=safe_float(get_dji("XMP-drone-dji:GimbalYawDegree", "GimbalYawDegree"))
         )
     elif brand == "Parrot":
         gps = GPSInfo(

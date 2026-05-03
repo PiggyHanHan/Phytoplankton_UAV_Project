@@ -145,8 +145,8 @@ def decode_raw(raw_path: str) -> Image.Image:
         raise FileNotFoundError(f"RAW 文件不存在: {raw_path}")
     logger.info(f"解码 RAW: {raw_path}")
     with rawpy.imread(raw_path) as raw:
+        # 使用相机白平衡，不限制输出颜色空间（默认即为 sRGB）
         rgb = raw.postprocess(use_camera_wb=RAW_DECODE_USE_CAMERA_WB,
-                              output_color=rawpy.postprocess.ColorSpace.sRGB,
                               no_auto_bright=True)
     return Image.fromarray(rgb)
 

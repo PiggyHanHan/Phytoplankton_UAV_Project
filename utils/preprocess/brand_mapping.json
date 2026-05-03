@@ -1,118 +1,225 @@
 {
-  "_description": "各品牌原始字段映射到标准字段的配置文件，键名为 priority 越小越优先匹配",
+  "_description": "各品牌原始字段映射到标准字段的配置文件。sensor_defaults 用于在元数据缺失时补全传感器物理尺寸。",
   "brands": {
     "DJI": {
       "priority": 1,
       "detect_fields": ["Make", "drone_brand"],
       "mapping": {
-        "camera_make":      "Make",
-        "camera_model":     "Model",
-        "focal_length":     "FocalLength",
-        "image_width":      "ImageWidth",
-        "image_height":     "ImageHeight",
-        "white_balance":    "WhiteBalance",
-        "dewarp_data":      "DewarpData",
-        "gps_lat":          "GPS.Latitude",
-        "gps_lon":          "GPS.Longitude",
-        "gps_abs_alt":      "GPS.AbsoluteAltitude",
-        "gps_rel_alt":      "GPS.RelativeAltitude",
-        "att_roll":         "Attitude.Roll",
-        "att_pitch":        "Attitude.Pitch",
-        "att_yaw":          "Attitude.Yaw",
-        "gimbal_roll":      "Gimbal.Roll",
-        "gimbal_pitch":     "Gimbal.Pitch",
-        "gimbal_yaw":       "Gimbal.Yaw",
+        "camera_make": "Make",
+        "camera_model": "Model",
+        "focal_length": "FocalLength",
+        "image_width": "ImageWidth",
+        "image_height": "ImageHeight",
+        "white_balance": "WhiteBalance",
+        "dewarp_data": "DewarpData",
+        "gps_lat": "GPS.Latitude",
+        "gps_lon": "GPS.Longitude",
+        "gps_abs_alt": "GPS.AbsoluteAltitude",
+        "gps_rel_alt": "GPS.RelativeAltitude",
+        "att_roll": "Attitude.Roll",
+        "att_pitch": "Attitude.Pitch",
+        "att_yaw": "Attitude.Yaw",
+        "gimbal_roll": "Gimbal.Roll",
+        "gimbal_pitch": "Gimbal.Pitch",
+        "gimbal_yaw": "Gimbal.Yaw",
         "capture_datetime": "capture_datetime"
+      },
+      "sensor_defaults": {
+        "FC2204": {
+          "sensor_width": 13.2,
+          "sensor_height": 8.8,
+          "desc": "DJI Mavic Air 2S 1-inch CMOS"
+        },
+        "FC3170": {
+          "sensor_width": 6.4,
+          "sensor_height": 4.8,
+          "desc": "DJI Mavic Air 2 1/2-inch CMOS"
+        },
+        "FC3411": {
+          "sensor_width": 17.3,
+          "sensor_height": 13.0,
+          "desc": "DJI Mavic 3 Wide Camera 4/3-inch CMOS"
+        },
+        "FC3501": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "DJI Phantom 4 Pro 1-inch CMOS (实际为 1 英寸，但老款标注不同)"
+        },
+        "FC6310": {
+          "sensor_width": 13.2,
+          "sensor_height": 8.8,
+          "desc": "DJI Phantom 4 RTK 1-inch CMOS"
+        },
+        "FC7303": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "DJI Mavic 2 Pro 1-inch CMOS (裁切)"
+        },
+        "FC1102": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "DJI Mini 2 1/2.3-inch CMOS"
+        },
+        "FC3582": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "DJI Mini 3 1/1.3-inch CMOS (近似值)"
+        },
+        "FC8482": {
+          "sensor_width": 9.7,
+          "sensor_height": 7.3,
+          "desc": "DJI Mini 4 Pro 1/1.3-inch CMOS (近似值)"
+        },
+        "FC4382": {
+          "sensor_width": 8.8,
+          "sensor_height": 6.6,
+          "desc": "DJI Air 3 1/1.3-inch CMOS (广角)"
+        },
+        "1/1.3-inch CMOS": {
+          "sensor_width": 9.7,
+          "sensor_height": 7.3,
+          "desc": "通用 1/1.3 英寸 CMOS 回退值"
+        },
+        "1-inch CMOS": {
+          "sensor_width": 13.2,
+          "sensor_height": 8.8,
+          "desc": "通用 1 英寸 CMOS 回退值"
+        },
+        "1/2.3-inch CMOS": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "通用 1/2.3 英寸 CMOS 回退值"
+        }
       }
     },
     "Autel": {
       "priority": 2,
       "detect_fields": ["Make"],
       "mapping": {
-        "camera_make":      "Make",
-        "camera_model":     "Model",
-        "focal_length":     "FocalLength",
-        "sensor_width":     "SensorWidth",
-        "sensor_height":    "SensorHeight",
-        "image_width":      "ImageWidth",
-        "image_height":     "ImageHeight",
-        "white_balance":    "WhiteBalance",
-        "gps_lat":          "GPS.Latitude",
-        "gps_lon":          "GPS.Longitude",
-        "gps_abs_alt":      "GPS.AbsoluteAltitude",
-        "gps_rel_alt":      "GPS.RelativeAltitude",
-        "att_roll":         "Attitude.Roll",
-        "att_pitch":        "Attitude.Pitch",
-        "att_yaw":          "Attitude.Yaw",
-        "gimbal_roll":      "Gimbal.Roll",
-        "gimbal_pitch":     "Gimbal.Pitch",
-        "gimbal_yaw":       "Gimbal.Yaw",
+        "camera_make": "Make",
+        "camera_model": "Model",
+        "focal_length": "FocalLength",
+        "sensor_width": "SensorWidth",
+        "sensor_height": "SensorHeight",
+        "image_width": "ImageWidth",
+        "image_height": "ImageHeight",
+        "white_balance": "WhiteBalance",
+        "gps_lat": "GPS.Latitude",
+        "gps_lon": "GPS.Longitude",
+        "gps_abs_alt": "GPS.AbsoluteAltitude",
+        "gps_rel_alt": "GPS.RelativeAltitude",
+        "att_roll": "Attitude.Roll",
+        "att_pitch": "Attitude.Pitch",
+        "att_yaw": "Attitude.Yaw",
+        "gimbal_roll": "Gimbal.Roll",
+        "gimbal_pitch": "Gimbal.Pitch",
+        "gimbal_yaw": "Gimbal.Yaw",
         "capture_datetime": "capture_datetime"
       },
       "sensor_defaults": {
-        "XT705": {"sensor_width": 13.2, "sensor_height": 8.8, "desc": "Autel EVO II Pro 1-inch CMOS"},
-        "XT706": {"sensor_width": 6.4, "sensor_height": 4.8, "desc": "Autel EVO II 8K 1/2-inch CMOS"},
-        "XT709": {"sensor_width": 7.4, "sensor_height": 5.6, "desc": "Autel EVO Lite 1/1.28-inch CMOS"}
+        "XT705": {
+          "sensor_width": 13.2,
+          "sensor_height": 8.8,
+          "desc": "Autel EVO II Pro 1-inch CMOS"
+        },
+        "XT706": {
+          "sensor_width": 6.4,
+          "sensor_height": 4.8,
+          "desc": "Autel EVO II 8K 1/2-inch CMOS"
+        },
+        "XT709": {
+          "sensor_width": 7.4,
+          "sensor_height": 5.6,
+          "desc": "Autel EVO Lite 1/1.28-inch CMOS"
+        }
       }
     },
     "Parrot": {
       "priority": 3,
       "detect_fields": ["Make"],
       "mapping": {
-        "camera_make":      "Make",
-        "camera_model":     "Model",
-        "focal_length":     "FocalLength",
-        "image_width":      "ImageWidth",
-        "image_height":     "ImageHeight",
-        "white_balance":    "WhiteBalance",
-        "gps_lat":          "GPS.Latitude",
-        "gps_lon":          "GPS.Longitude",
-        "gps_abs_alt":      "GPS.AbsoluteAltitude",
-        "gps_rel_alt":      "GPS.RelativeAltitude",
-        "att_roll":         "Attitude.Roll",
-        "att_pitch":        "Attitude.Pitch",
-        "att_yaw":          "Attitude.Yaw",
-        "gimbal_roll":      "Gimbal.Roll",
-        "gimbal_pitch":     "Gimbal.Pitch",
-        "gimbal_yaw":       "Gimbal.Yaw",
+        "camera_make": "Make",
+        "camera_model": "Model",
+        "focal_length": "FocalLength",
+        "image_width": "ImageWidth",
+        "image_height": "ImageHeight",
+        "white_balance": "WhiteBalance",
+        "gps_lat": "GPS.Latitude",
+        "gps_lon": "GPS.Longitude",
+        "gps_abs_alt": "GPS.AbsoluteAltitude",
+        "gps_rel_alt": "GPS.RelativeAltitude",
+        "att_roll": "Attitude.Roll",
+        "att_pitch": "Attitude.Pitch",
+        "att_yaw": "Attitude.Yaw",
+        "gimbal_roll": "Gimbal.Roll",
+        "gimbal_pitch": "Gimbal.Pitch",
+        "gimbal_yaw": "Gimbal.Yaw",
         "capture_datetime": "capture_datetime"
       },
       "sensor_defaults": {
-        "ANAFI Ai":   {"sensor_width": 5.76, "sensor_height": 4.29, "desc": "Parrot ANAFI Ai 1/2.4-inch CMOS"},
-        "ANAFI USA":  {"sensor_width": 6.4, "sensor_height": 4.8, "desc": "Parrot ANAFI USA 1/2-inch CMOS"},
-        "ANAFI":      {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Parrot ANAFI 1/2.3-inch CMOS"}
+        "ANAFI Ai": {
+          "sensor_width": 5.76,
+          "sensor_height": 4.29,
+          "desc": "Parrot ANAFI Ai 1/2.4-inch CMOS"
+        },
+        "ANAFI USA": {
+          "sensor_width": 6.4,
+          "sensor_height": 4.8,
+          "desc": "Parrot ANAFI USA 1/2-inch CMOS"
+        },
+        "ANAFI": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "Parrot ANAFI 1/2.3-inch CMOS"
+        }
       }
     },
     "Skydio": {
       "priority": 4,
       "detect_fields": ["Make"],
       "mapping": {
-        "camera_make":      "Make",
-        "camera_model":     "Model",
-        "focal_length":     "FocalLength",
-        "sensor_width":     "SensorWidth",
-        "sensor_height":    "SensorHeight",
-        "image_width":      "ImageWidth",
-        "image_height":     "ImageHeight",
-        "white_balance":    "WhiteBalance",
-        "dewarp_data":      "DewarpData",
-        "gps_lat":          "GPS.Latitude",
-        "gps_lon":          "GPS.Longitude",
-        "gps_abs_alt":      "GPS.AbsoluteAltitude",
-        "gps_rel_alt":      "GPS.RelativeAltitude",
-        "att_roll":         "Attitude.Roll",
-        "att_pitch":        "Attitude.Pitch",
-        "att_yaw":          "Attitude.Yaw",
-        "gimbal_roll":      "Gimbal.Roll",
-        "gimbal_pitch":     "Gimbal.Pitch",
-        "gimbal_yaw":       "Gimbal.Yaw",
+        "camera_make": "Make",
+        "camera_model": "Model",
+        "focal_length": "FocalLength",
+        "sensor_width": "SensorWidth",
+        "sensor_height": "SensorHeight",
+        "image_width": "ImageWidth",
+        "image_height": "ImageHeight",
+        "white_balance": "WhiteBalance",
+        "dewarp_data": "DewarpData",
+        "gps_lat": "GPS.Latitude",
+        "gps_lon": "GPS.Longitude",
+        "gps_abs_alt": "GPS.AbsoluteAltitude",
+        "gps_rel_alt": "GPS.RelativeAltitude",
+        "att_roll": "Attitude.Roll",
+        "att_pitch": "Attitude.Pitch",
+        "att_yaw": "Attitude.Yaw",
+        "gimbal_roll": "Gimbal.Roll",
+        "gimbal_pitch": "Gimbal.Pitch",
+        "gimbal_yaw": "Gimbal.Yaw",
         "capture_datetime": "capture_datetime"
       },
       "sensor_defaults": {
-        "Skydio 2":  {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Skydio 2 1/2.3-inch CMOS"},
-        "Skydio 2+": {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Skydio 2+ 1/2.3-inch CMOS"},
-        "Skydio X2": {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Skydio X2 1/2.3-inch CMOS"},
-        "Skydio X10": {"sensor_width": 13.1072, "sensor_height": 9.8304, "desc": "Skydio X10 VT300-L Wide Camera"}
+        "Skydio 2": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "Skydio 2 1/2.3-inch CMOS"
+        },
+        "Skydio 2+": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "Skydio 2+ 1/2.3-inch CMOS"
+        },
+        "Skydio X2": {
+          "sensor_width": 6.17,
+          "sensor_height": 4.55,
+          "desc": "Skydio X2 1/2.3-inch CMOS"
+        },
+        "Skydio X10": {
+          "sensor_width": 13.1072,
+          "sensor_height": 9.8304,
+          "desc": "Skydio X10 VT300-L Wide Camera"
+        }
       }
     },
     "Custom": {
