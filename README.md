@@ -74,7 +74,7 @@
   - 将原图等比缩放至长边 ≤1024，居中黑边填充为 1024×1024 PNG；
   - 同步输出包含有效GSD、有效区域边界的元数据文件。
   - 注意：**本脚本不执行透视变换或视场畸变矫正**，所有矫正依赖严格的拍摄规范。
-- **无人机参数**
+- **设计并交付无人机参数解析脚本**：编写 `parse_drone_metadata.py`，供标准化脚本`orthorectify.py`使用，确保 GSD 数据的有效提取。
 - **天气分类模型构建**：使用 **多类天气图片数据集**（存放于 `data/weather_public/`）训练轻量级天气分类模型（ResNet-18），用于自动识别输入航拍图为“晴天”、“阴天”或“雾天”，权重保存至 `models/weather_classifier/best_weather_model.pth`。
 - **多条件分割模型训练**：从 `data/03_labeled/` 读取图像与掩码，按文件名中的天气标签划分三个子数据集，分别训练三个独立的 DeepLabV3+ 语义分割模型，权重分别保存至 `models/deeplabv3plus/sunny/`、`cloudy/`、`hazy/`。**同时使用全部标注数据训练一个不区分天气的统一 DeepLabV3+ 模型，权重保存至 `models/deeplabv3plus/combined/`，并在训练过程中计算并记录 mIoU、Accuracy 等指标。**
 - **推理与量化计算**：推理脚本 `models/predict_pipeline.py` 接收输入图像及对应元数据，自动调用天气分类模型，路由至对应 DeepLabV3+ 模型，输出分割掩码图至 `outputs/masks/`。**同时读取校正元数据中的空间分辨率信息，将像素面积转换为实际面积（平方米/亩）**，输出量化数据（JSON/CSV）至 `outputs/quantifications/`。
