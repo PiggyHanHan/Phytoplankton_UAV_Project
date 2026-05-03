@@ -67,11 +67,17 @@ def validate_attitude(meta: StandardizedMetadata):
         if abs(val) > ALLOWED_ROLL_DEVIATION:
             raise ValueError(f"{name} {val}° 超出允许范围（±{ALLOWED_ROLL_DEVIATION}°）")
 
-def validate_white_balance(meta: StandardizedMetadata):
-    """禁止自动白平衡（已归一化为 'Auto' 或原始值）"""
+def validate_white_balance(meta: StandardizedMetadata, mode: str = "training"):
+    """禁止自动白平衡（已归一化为 'Auto' 或原始值），对 Unknown 按模式区别处理"""
     wb = meta.camera.white_balance or ""
     if wb == "Auto" or "auto" in wb.lower():
         raise ValueError(f"白平衡模式为 '{wb}'，项目规范要求锁定预设，禁止自动模式")
+    if wb == "Unknown":
+        msg = "白平衡数据缺失（Unknown），无法确认是否锁定预设"
+        if mode == "user":
+            raise ValueError(msg)
+        else:
+            logger.warning(msg)
 
 def validate_focal_consistency(meta: StandardizedMetadata,
                                baseline_focal: Optional[float]) -> Optional[float]:
@@ -112,7 +118,6 @@ def validate_spatial(meta: StandardizedMetadata,
 
 # ─────────── GSD 计算 ───────────
 def compute_gsd(meta: StandardizedMetadata) -> Optional[float]:
-    """计算理论 GSD（米/像素），缺失传感器尺寸时返回 None"""
     rel_alt = meta.gps.relative_altitude
     if rel_alt is None or rel_alt <= 0:
         raise ValueError("相对高度缺失或无效，无法计算 GSD")
@@ -217,9 +222,9 @@ def process_single_image(raw_image_path: str,
     # 1. 提取元数据
     meta = parse_drone_metadata_from_image(raw_image_path)
 
-    # 2. 姿态与白平衡校验（白平衡已在解析时归一化，可直接用校验）
+    # 2. 姿态与白平衡校验（传入 mode 以决定对 Unknown 白平衡的处理）
     validate_attitude(meta)
-    validate_white_balance(meta)
+    validate_white_balance(meta, mode)
 
     # 3. 解码 RAW 获取真实图像尺寸，覆盖 EXIF 中可能错误的尺寸
     image = decode_raw(raw_image_path)

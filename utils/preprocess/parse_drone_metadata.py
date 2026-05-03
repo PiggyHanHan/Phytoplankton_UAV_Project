@@ -291,13 +291,16 @@ def _validate_focal_length(meta: StandardizedMetadata):
 
 # ─────────── 白平衡归一卷标 ───────────
 def _normalize_white_balance(wb_raw: str) -> str:
-    """将可能出现的自动白平衡变体统一为 'Auto'，便于校验"""
+    """将可能出现的自动白平衡变体统一为 'Auto'，包括数字代码 0 等。"""
     if not wb_raw:
         return "Unknown"
-    wb_lower = wb_raw.lower()
-    if "auto" in wb_lower or "awb" in wb_lower:
+    s = str(wb_raw).strip().lower()
+    # 数字代码 0 代表自动
+    if s == "0":
         return "Auto"
-    return wb_raw
+    if "auto" in s or "awb" in s:
+        return "Auto"
+    return str(wb_raw)
 
 # ==================== 从图像提取（主接口） ====================
 def parse_drone_metadata_from_image(image_path: str,
@@ -345,6 +348,7 @@ def parse_drone_metadata_from_image(image_path: str,
         return None
 
     # 通用相机信息：传感器尺寸留空，由品牌映射表补充
+    # 白平衡现在通过 _normalize_white_balance 统一处理，并增加了顶层 WhiteBalance 回退
     camera = CameraInfo(
         make=get_tag("EXIF:Make", "MakerNotes:Make"),
         model=get_tag("EXIF:Model", "MakerNotes:Model"),
@@ -353,7 +357,9 @@ def parse_drone_metadata_from_image(image_path: str,
         sensor_height=None,
         image_width=safe_int(get_tag("EXIF:ImageWidth", "File:ImageWidth")),
         image_height=safe_int(get_tag("EXIF:ImageHeight", "File:ImageHeight")),
-        white_balance="Unknown",
+        white_balance=_normalize_white_balance(
+            str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
+        ),
         dewarp_data=get_tag("XMP-drone-dji:DewarpData")
     )
 
@@ -384,7 +390,7 @@ def parse_drone_metadata_from_image(image_path: str,
             pitch=safe_float(get_dji("XMP-drone-dji:GimbalPitchDegree", "GimbalPitchDegree")),
             yaw=safe_float(get_dji("XMP-drone-dji:GimbalYawDegree", "GimbalYawDegree"))
         )
-        # 读取 DJI 白平衡（优先使用专用 XMP 标签）
+        # 读取 DJI 白平衡（优先使用专用 XMP 标签，回退到通用标签）
         wb_dji = str(get_dji("XMP-drone-dji:WhiteBalance", "WhiteBalance") or "")
         camera.white_balance = _normalize_white_balance(wb_dji if wb_dji else "Unknown")
 
@@ -403,7 +409,7 @@ def parse_drone_metadata_from_image(image_path: str,
         gimbal = GimbalInfo(
             pitch=safe_float(get_tag("XMP-drone-parrot:GimbalPitchDegree"), default=-90.0)
         )
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     elif brand == "Autel":
@@ -415,7 +421,7 @@ def parse_drone_metadata_from_image(image_path: str,
         )
         attitude = AttitudeInfo()
         gimbal = GimbalInfo(pitch=-90.0)
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     else:
@@ -427,7 +433,7 @@ def parse_drone_metadata_from_image(image_path: str,
         )
         attitude = AttitudeInfo()
         gimbal = GimbalInfo(pitch=-90.0)
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     # 使用传感器特征库补充缺失的物理尺寸
