@@ -89,8 +89,7 @@ python utils/preprocess/orthorectify.py \
   --out data/02_preprocessed \
   --mode training
 ```
-- 不限制拍摄位置、高度、焦距，仅保证图像来自垂直俯拍且白平衡锁定。  
-- 如需在训练数据中仍强制焦距一致（例如同一飞行器多次拍摄），可添加 `--check-focal`。
+- 不限制拍摄位置、高度、焦距，仅保证图像来自垂直俯拍且白平衡锁定。
 
 ---
 

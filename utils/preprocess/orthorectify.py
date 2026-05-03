@@ -27,30 +27,28 @@ from typing import Optional, Tuple
 import rawpy
 from PIL import Image
 
-# 尝试导入 geopy（可选），缺失时使用简化球面距离公式
 try:
     from geopy.distance import geodesic
     _USE_GEOPY = True
 except ImportError:
     _USE_GEOPY = False
 
-# 从同目录下的解析模块导入新函数
 from parse_drone_metadata import parse_drone_metadata_from_image, StandardizedMetadata
 
 # ─────────── 配置 ───────────
 IMAGE_SIZE = 1024
 MAX_LONG_EDGE = 1024
-ALLOWED_PITCH_DEVIATION = 3.0      # 云台俯仰 -90° ± 3°
-ALLOWED_ROLL_DEVIATION = 2.0       # 机体 / 云台横滚 ±2°
-RAW_DECODE_USE_CAMERA_WB = True    # 使用相机记录的白平衡
+ALLOWED_PITCH_DEVIATION = 3.0
+ALLOWED_ROLL_DEVIATION = 2.0
+RAW_DECODE_USE_CAMERA_WB = True
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("orthorectify")
 
-# ─────────── 辅助：简化球面距离（无 geopy 时使用）───────────
+# ─────────── 辅助 ───────────
 def _haversine_distance(lat1, lon1, lat2, lon2):
-    R = 6371000  # 米
+    R = 6371000
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
     a = (math.sin(dlat / 2) ** 2 +
@@ -61,7 +59,6 @@ def _haversine_distance(lat1, lon1, lat2, lon2):
 
 # ─────────── 校验函数 ───────────
 def validate_attitude(meta: StandardizedMetadata):
-    """姿态校验：云台俯仰 -90°±3°，横滚 ≤2°"""
     if abs(meta.gimbal.pitch + 90.0) > ALLOWED_PITCH_DEVIATION:
         raise ValueError(
             f"云台俯仰角 {meta.gimbal.pitch}° 偏离垂直基准（-90°），允许 ±{ALLOWED_PITCH_DEVIATION}°"
@@ -71,20 +68,19 @@ def validate_attitude(meta: StandardizedMetadata):
             raise ValueError(f"{name} {val}° 超出允许范围（±{ALLOWED_ROLL_DEVIATION}°）")
 
 def validate_white_balance(meta: StandardizedMetadata):
-    """禁止自动白平衡"""
+    """禁止自动白平衡（已归一化为 'Auto' 或原始值）"""
     wb = meta.camera.white_balance or ""
-    if "auto" in wb.lower():
+    if wb == "Auto" or "auto" in wb.lower():
         raise ValueError(f"白平衡模式为 '{wb}'，项目规范要求锁定预设，禁止自动模式")
 
 def validate_focal_consistency(meta: StandardizedMetadata,
                                baseline_focal: Optional[float]) -> Optional[float]:
-    """焦距一致性校验，返回基准焦距（首次自动记录）"""
     current = meta.camera.focal_length
     if current is None or current <= 0:
         raise ValueError("焦距数据无效")
     if baseline_focal is None:
         return current
-    if abs(current - baseline_focal) > 0.5:  # 允许 0.5 mm 偏差
+    if abs(current - baseline_focal) > 0.5:
         raise ValueError(
             f"焦距不一致：基准 {baseline_focal} mm，当前 {current} mm"
         )
@@ -94,10 +90,6 @@ def validate_spatial(meta: StandardizedMetadata,
                      ref_lat: float, ref_lon: float, ref_alt: float,
                      gps_threshold: float = 5.0,
                      alt_threshold_percent: float = 10.0):
-    """
-    空间校验：GPS 距离 ≤ gps_threshold (m)，相对高度偏差 ≤ alt_threshold_percent %
-    """
-    # GPS 距离
     if ref_lat is not None and ref_lon is not None:
         if _USE_GEOPY:
             dist = geodesic((meta.gps.latitude, meta.gps.longitude),
@@ -109,7 +101,6 @@ def validate_spatial(meta: StandardizedMetadata,
             raise ValueError(
                 f"GPS 位置偏差 {dist:.1f} m 超过允许阈值 {gps_threshold} m"
             )
-    # 高度偏差
     if ref_alt is not None and ref_alt > 0:
         current_alt = meta.gps.relative_altitude
         deviation = abs(current_alt - ref_alt) / ref_alt * 100
@@ -125,7 +116,7 @@ def compute_gsd(meta: StandardizedMetadata) -> Optional[float]:
     rel_alt = meta.gps.relative_altitude
     if rel_alt is None or rel_alt <= 0:
         raise ValueError("相对高度缺失或无效，无法计算 GSD")
-    focal_m = meta.camera.focal_length / 1000.0   # mm → m
+    focal_m = meta.camera.focal_length / 1000.0
     sensor_w = meta.camera.sensor_width
     sensor_h = meta.camera.sensor_height
     img_w = meta.camera.image_width
@@ -140,24 +131,21 @@ def compute_gsd(meta: StandardizedMetadata) -> Optional[float]:
 
 # ─────────── 图像处理 ───────────
 def decode_raw(raw_path: str) -> Image.Image:
-    """解码 RAW 为 RGB PIL Image"""
     if not os.path.exists(raw_path):
         raise FileNotFoundError(f"RAW 文件不存在: {raw_path}")
     logger.info(f"解码 RAW: {raw_path}")
     with rawpy.imread(raw_path) as raw:
-        # 使用相机白平衡，不限制输出颜色空间（默认即为 sRGB）
         rgb = raw.postprocess(use_camera_wb=RAW_DECODE_USE_CAMERA_WB,
                               no_auto_bright=True)
     return Image.fromarray(rgb)
 
 def resize_and_pad(image: Image.Image) -> Tuple[Image.Image, Tuple[float, float, float, float]]:
-    """等比缩放至长边≤1024（若原图长边小于1024则保持原尺寸），居中黑边填充到 1024×1024，返回图像和有效区域归一化边界"""
     w, h = image.size
     max_edge = max(w, h)
     if max_edge > IMAGE_SIZE:
         scale = IMAGE_SIZE / max_edge
     else:
-        scale = 1.0   # 不放大，保持原分辨率
+        scale = 1.0
     new_w, new_h = int(round(w * scale)), int(round(h * scale))
     resized = image.resize((new_w, new_h), Image.LANCZOS)
     padded = Image.new("RGB", (IMAGE_SIZE, IMAGE_SIZE), (0, 0, 0))
@@ -172,7 +160,6 @@ def resize_and_pad(image: Image.Image) -> Tuple[Image.Image, Tuple[float, float,
 def save_outputs(image: Image.Image, image_stem: str, output_dir: str,
                  gsd: Optional[float], valid_region: Tuple[float, ...],
                  meta_obj: StandardizedMetadata):
-    """保存处理后的图像及配套元数据 JSON"""
     out_dir = Path(output_dir)
     img_dir = out_dir / "images"
     meta_dir = out_dir / "meta"
@@ -215,7 +202,7 @@ def save_outputs(image: Image.Image, image_stem: str, output_dir: str,
         json.dump(meta, f, indent=2, ensure_ascii=False)
     logger.info(f"元数据已保存: {meta_path}")
 
-# ─────────── 主处理函数（单张，直接从图像中提取元数据）───────────
+# ─────────── 主处理函数 ───────────
 def process_single_image(raw_image_path: str,
                          output_dir: str,
                          mode: str = "training",
@@ -227,43 +214,48 @@ def process_single_image(raw_image_path: str,
                          gps_threshold: float = 5.0,
                          alt_threshold_percent: float = 10.0
                          ) -> Optional[float]:
-    """
-    处理单张 RAW / DNG 图像。
-    - 直接从图像内嵌元数据提取参数（内部调用 parse_drone_metadata_from_image）。
-    - 根据 mode 决定校验策略。
-    - 返回更新后的基准焦距（若启用焦距校验）。
-    """
-    # 直接从图像中解析元数据
+    # 1. 提取元数据
     meta = parse_drone_metadata_from_image(raw_image_path)
 
-    # 通用校验（所有模式都执行）
+    # 2. 姿态与白平衡校验（白平衡已在解析时归一化，可直接用校验）
     validate_attitude(meta)
     validate_white_balance(meta)
 
-    # 按模式执行额外校验
+    # 3. 解码 RAW 获取真实图像尺寸，覆盖 EXIF 中可能错误的尺寸
+    image = decode_raw(raw_image_path)
+    true_w, true_h = image.size
+    if meta.camera.image_width is None or meta.camera.image_height is None or \
+       abs(meta.camera.image_width - true_w) > 100 or abs(meta.camera.image_height - true_h) > 100:
+        logger.info(f"EXIF 图像尺寸 {meta.camera.image_width}x{meta.camera.image_height} "
+                    f"与解码尺寸 {true_w}x{true_h} 差异较大，使用解码尺寸")
+        meta.camera.image_width = true_w
+        meta.camera.image_height = true_h
+
+    # 4. 按模式额外校验
     if mode == "user":
         if check_focal_consistency:
             new_baseline = validate_focal_consistency(meta, baseline_focal_length)
         else:
             new_baseline = baseline_focal_length
-        # 空间校验
         if ref_lat is None or ref_lon is None or ref_alt is None:
-            logger.warning("用户端模式缺少基准 GPS/高度，将跳过空间校验")
+            logger.warning("用户端模式缺少基准 GPS/高度，跳过空间校验")
         else:
             validate_spatial(meta, ref_lat, ref_lon, ref_alt,
                              gps_threshold, alt_threshold_percent)
-    else:  # training 模式
+    else:
         new_baseline = baseline_focal_length
 
-    # 计算 GSD → 解码 RAW → 缩放填充 → 保存
+    # 5. GSD 计算（此时图像尺寸已是真实值）
     gsd = compute_gsd(meta)
-    image = decode_raw(raw_image_path)
+
+    # 6. 缩放填充
     processed_img, region = resize_and_pad(image)
+
+    # 7. 保存输出
     stem = Path(raw_image_path).stem
     save_outputs(processed_img, stem, output_dir, gsd, region, meta)
     return new_baseline
 
-# ─────────── 批量处理（无需 json_dir）───────────
 def process_batch(raw_dir: str,
                   output_dir: str,
                   mode: str = "training",
@@ -271,9 +263,6 @@ def process_batch(raw_dir: str,
                   ref_lat: Optional[float] = None,
                   ref_lon: Optional[float] = None,
                   ref_alt: Optional[float] = None):
-    """
-    批量处理 raw_dir 下所有 .RAW 和 .DNG 文件。
-    """
     raw_files = list(Path(raw_dir).glob("*.RAW")) + list(Path(raw_dir).glob("*.DNG"))
     if not raw_files:
         logger.warning(f"{raw_dir} 中未找到 RAW/DNG 文件")
@@ -294,21 +283,17 @@ def process_batch(raw_dir: str,
             continue
     return baseline
 
-# ─────────── 命令行入口 ───────────
 def main():
     parser = argparse.ArgumentParser(
         description="无人机航拍图像正射校正预处理（直接从图像读取元数据）"
     )
-    # 输入
     parser.add_argument("--raw", help="单张 RAW / DNG 图像路径")
     parser.add_argument("--raw-dir", help="批量图像目录（自动遍历其中的 RAW/DNG）")
     parser.add_argument("--out", required=True, help="输出根目录，如 data/02_preprocessed")
-    # 模式
     parser.add_argument("--mode", choices=["user", "training"], default="training",
                         help="处理模式：user=全规范校验，training=放宽空间与焦距")
     parser.add_argument("--check-focal", action="store_true",
                         help="启用焦距一致性校验（用户端建议开启）")
-    # 用户端空间基准
     parser.add_argument("--ref-lat", type=float, help="池塘基准纬度")
     parser.add_argument("--ref-lon", type=float, help="池塘基准经度")
     parser.add_argument("--ref-alt", type=float, help="池塘基准相对高度（米）")

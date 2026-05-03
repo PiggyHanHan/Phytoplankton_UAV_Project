@@ -266,7 +266,6 @@ def _identify_brand_from_dict(raw: Dict, brands: Dict) -> str:
         return raw["drone_brand"]
     if "drone_type" in raw and raw["drone_type"] in brands:
         return raw["drone_type"]
-    # 按优先级检测字段，且要求字段值包含品牌名（不区分大小写）
     for brand, config in sorted(brands.items(), key=lambda x: x[1].get("priority", 99)):
         for field in config.get("detect_fields", []):
             if field in raw:
@@ -289,6 +288,16 @@ def _inject_sensor_defaults(camera: CameraInfo, brand_config: Dict):
 def _validate_focal_length(meta: StandardizedMetadata):
     if meta.camera.focal_length is None or meta.camera.focal_length <= 0:
         raise ValueError(f"焦距无效: {meta.camera.focal_length}")
+
+# ─────────── 白平衡归一卷标 ───────────
+def _normalize_white_balance(wb_raw: str) -> str:
+    """将可能出现的自动白平衡变体统一为 'Auto'，便于校验"""
+    if not wb_raw:
+        return "Unknown"
+    wb_lower = wb_raw.lower()
+    if "auto" in wb_lower or "awb" in wb_lower:
+        return "Auto"
+    return wb_raw
 
 # ==================== 从图像提取（主接口） ====================
 def parse_drone_metadata_from_image(image_path: str,
@@ -326,7 +335,6 @@ def parse_drone_metadata_from_image(image_path: str,
     logger.info(f"从图像识别品牌: {brand}")
     brand_config = brands.get(brand)
     if not brand_config:
-        # 某些小众品牌可能未配置，尝试用通用 EXIF 标签提取基础信息
         brand_config = {}
 
     # 辅助取值函数
@@ -341,26 +349,23 @@ def parse_drone_metadata_from_image(image_path: str,
         make=get_tag("EXIF:Make", "MakerNotes:Make"),
         model=get_tag("EXIF:Model", "MakerNotes:Model"),
         focal_length=safe_float(get_tag("EXIF:FocalLength"), default=None),
-        sensor_width=None,          # 由 _inject_sensor_defaults 从映射表补全
+        sensor_width=None,
         sensor_height=None,
         image_width=safe_int(get_tag("EXIF:ImageWidth", "File:ImageWidth")),
         image_height=safe_int(get_tag("EXIF:ImageHeight", "File:ImageHeight")),
-        white_balance=str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "Unknown"),
+        white_balance="Unknown",
         dewarp_data=get_tag("XMP-drone-dji:DewarpData")
     )
 
     # 品牌特有标签补充
     if brand == "DJI":
         def get_dji(prefixed, plain):
-            # 1. 标准 XMP-drone-dji 前缀
             val = get_tag(prefixed)
             if val is not None:
                 return val
-            # 2. XMP 通用前缀（exiftool -G 可能把自定义标签归到 XMP:）
             val = get_tag("XMP:" + plain)
             if val is not None:
                 return val
-            # 3. 完全无前缀（仅当 exiftool 未加 -G 时可能出现）
             return get_tag(plain)
 
         gps = GPSInfo(
@@ -379,6 +384,10 @@ def parse_drone_metadata_from_image(image_path: str,
             pitch=safe_float(get_dji("XMP-drone-dji:GimbalPitchDegree", "GimbalPitchDegree")),
             yaw=safe_float(get_dji("XMP-drone-dji:GimbalYawDegree", "GimbalYawDegree"))
         )
+        # 读取 DJI 白平衡（优先使用专用 XMP 标签）
+        wb_dji = str(get_dji("XMP-drone-dji:WhiteBalance", "WhiteBalance") or "")
+        camera.white_balance = _normalize_white_balance(wb_dji if wb_dji else "Unknown")
+
     elif brand == "Parrot":
         gps = GPSInfo(
             latitude=safe_float(get_tag("EXIF:GPSLatitude")),
@@ -394,6 +403,9 @@ def parse_drone_metadata_from_image(image_path: str,
         gimbal = GimbalInfo(
             pitch=safe_float(get_tag("XMP-drone-parrot:GimbalPitchDegree"), default=-90.0)
         )
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "")
+        camera.white_balance = _normalize_white_balance(wb_raw)
+
     elif brand == "Autel":
         gps = GPSInfo(
             latitude=safe_float(get_tag("EXIF:GPSLatitude")),
@@ -403,8 +415,10 @@ def parse_drone_metadata_from_image(image_path: str,
         )
         attitude = AttitudeInfo()
         gimbal = GimbalInfo(pitch=-90.0)
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "")
+        camera.white_balance = _normalize_white_balance(wb_raw)
+
     else:
-        # 通用回退：使用 EXIF GPS（如果有）
         gps = GPSInfo(
             latitude=safe_float(get_tag("EXIF:GPSLatitude")),
             longitude=safe_float(get_tag("EXIF:GPSLongitude")),
@@ -413,6 +427,8 @@ def parse_drone_metadata_from_image(image_path: str,
         )
         attitude = AttitudeInfo()
         gimbal = GimbalInfo(pitch=-90.0)
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "")
+        camera.white_balance = _normalize_white_balance(wb_raw)
 
     # 使用传感器特征库补充缺失的物理尺寸
     _inject_sensor_defaults(camera, brand_config)
@@ -435,13 +451,11 @@ def parse_drone_metadata_from_image(image_path: str,
     return meta
 
 def _identify_brand_from_exif(exif: Dict, brands: Dict) -> str:
-    # 基于 Make 字段
     make = exif.get("EXIF:Make") or exif.get("MakerNotes:Make") or ""
     make_lower = make.lower()
     for brand in brands:
         if brand.lower() in make_lower:
             return brand
-    # 基于 XMP 命名空间
     for key in exif:
         for brand in ["DJI", "Parrot", "Skydio", "Autel"]:
             if brand.lower() in key.lower():
