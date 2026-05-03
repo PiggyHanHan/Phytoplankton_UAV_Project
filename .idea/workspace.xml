@@ -5,7 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.3 正射+fov+白平衡均改为对用户的要求">
+      <change afterPath="$PROJECT_DIR$/utils/preprocess/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/preprocess/brand_mapping.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -237,7 +242,7 @@
       <workItem from="1777386204558" duration="9000" />
       <workItem from="1777731707528" duration="1505000" />
       <workItem from="1777735108268" duration="430000" />
-      <workItem from="1777770818037" duration="1624000" />
+      <workItem from="1777770818037" duration="4061000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -391,7 +396,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777772038397</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="5.3 正射+fov+白平衡均改为对用户的要求">
+      <option name="closed" value="true" />
+      <created>1777772457349</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1777772457349</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

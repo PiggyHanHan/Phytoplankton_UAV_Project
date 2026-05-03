@@ -1,0 +1,124 @@
+{
+  "_description": "各品牌原始字段映射到标准字段的配置文件，键名为 priority 越小越优先匹配",
+  "brands": {
+    "DJI": {
+      "priority": 1,
+      "detect_fields": ["Make", "drone_brand"],
+      "mapping": {
+        "camera_make":      "Make",
+        "camera_model":     "Model",
+        "focal_length":     "FocalLength",
+        "image_width":      "ImageWidth",
+        "image_height":     "ImageHeight",
+        "white_balance":    "WhiteBalance",
+        "dewarp_data":      "DewarpData",
+        "gps_lat":          "GPS.Latitude",
+        "gps_lon":          "GPS.Longitude",
+        "gps_abs_alt":      "GPS.AbsoluteAltitude",
+        "gps_rel_alt":      "GPS.RelativeAltitude",
+        "att_roll":         "Attitude.Roll",
+        "att_pitch":        "Attitude.Pitch",
+        "att_yaw":          "Attitude.Yaw",
+        "gimbal_roll":      "Gimbal.Roll",
+        "gimbal_pitch":     "Gimbal.Pitch",
+        "gimbal_yaw":       "Gimbal.Yaw",
+        "capture_datetime": "capture_datetime"
+      }
+    },
+    "Autel": {
+      "priority": 2,
+      "detect_fields": ["Make"],
+      "mapping": {
+        "camera_make":      "Make",
+        "camera_model":     "Model",
+        "focal_length":     "FocalLength",
+        "sensor_width":     "SensorWidth",
+        "sensor_height":    "SensorHeight",
+        "image_width":      "ImageWidth",
+        "image_height":     "ImageHeight",
+        "white_balance":    "WhiteBalance",
+        "gps_lat":          "GPS.Latitude",
+        "gps_lon":          "GPS.Longitude",
+        "gps_abs_alt":      "GPS.AbsoluteAltitude",
+        "gps_rel_alt":      "GPS.RelativeAltitude",
+        "att_roll":         "Attitude.Roll",
+        "att_pitch":        "Attitude.Pitch",
+        "att_yaw":          "Attitude.Yaw",
+        "gimbal_roll":      "Gimbal.Roll",
+        "gimbal_pitch":     "Gimbal.Pitch",
+        "gimbal_yaw":       "Gimbal.Yaw",
+        "capture_datetime": "capture_datetime"
+      },
+      "sensor_defaults": {
+        "XT705": {"sensor_width": 13.2, "sensor_height": 8.8, "desc": "Autel EVO II Pro 1-inch CMOS"},
+        "XT706": {"sensor_width": 6.4, "sensor_height": 4.8, "desc": "Autel EVO II 8K 1/2-inch CMOS"},
+        "XT709": {"sensor_width": 7.4, "sensor_height": 5.6, "desc": "Autel EVO Lite 1/1.28-inch CMOS"}
+      }
+    },
+    "Parrot": {
+      "priority": 3,
+      "detect_fields": ["Make"],
+      "mapping": {
+        "camera_make":      "Make",
+        "camera_model":     "Model",
+        "focal_length":     "FocalLength",
+        "image_width":      "ImageWidth",
+        "image_height":     "ImageHeight",
+        "white_balance":    "WhiteBalance",
+        "gps_lat":          "GPS.Latitude",
+        "gps_lon":          "GPS.Longitude",
+        "gps_abs_alt":      "GPS.AbsoluteAltitude",
+        "gps_rel_alt":      "GPS.RelativeAltitude",
+        "att_roll":         "Attitude.Roll",
+        "att_pitch":        "Attitude.Pitch",
+        "att_yaw":          "Attitude.Yaw",
+        "gimbal_roll":      "Gimbal.Roll",
+        "gimbal_pitch":     "Gimbal.Pitch",
+        "gimbal_yaw":       "Gimbal.Yaw",
+        "capture_datetime": "capture_datetime"
+      },
+      "sensor_defaults": {
+        "ANAFI Ai":   {"sensor_width": 5.76, "sensor_height": 4.29, "desc": "Parrot ANAFI Ai 1/2.4-inch CMOS"},
+        "ANAFI USA":  {"sensor_width": 6.4, "sensor_height": 4.8, "desc": "Parrot ANAFI USA 1/2-inch CMOS"},
+        "ANAFI":      {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Parrot ANAFI 1/2.3-inch CMOS"}
+      }
+    },
+    "Skydio": {
+      "priority": 4,
+      "detect_fields": ["Make"],
+      "mapping": {
+        "camera_make":      "Make",
+        "camera_model":     "Model",
+        "focal_length":     "FocalLength",
+        "sensor_width":     "SensorWidth",
+        "sensor_height":    "SensorHeight",
+        "image_width":      "ImageWidth",
+        "image_height":     "ImageHeight",
+        "white_balance":    "WhiteBalance",
+        "dewarp_data":      "DewarpData",
+        "gps_lat":          "GPS.Latitude",
+        "gps_lon":          "GPS.Longitude",
+        "gps_abs_alt":      "GPS.AbsoluteAltitude",
+        "gps_rel_alt":      "GPS.RelativeAltitude",
+        "att_roll":         "Attitude.Roll",
+        "att_pitch":        "Attitude.Pitch",
+        "att_yaw":          "Attitude.Yaw",
+        "gimbal_roll":      "Gimbal.Roll",
+        "gimbal_pitch":     "Gimbal.Pitch",
+        "gimbal_yaw":       "Gimbal.Yaw",
+        "capture_datetime": "capture_datetime"
+      },
+      "sensor_defaults": {
+        "Skydio 2":  {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Skydio 2 1/2.3-inch CMOS"},
+        "Skydio 2+": {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Skydio 2+ 1/2.3-inch CMOS"},
+        "Skydio X2": {"sensor_width": 6.17, "sensor_height": 4.55, "desc": "Skydio X2 1/2.3-inch CMOS"},
+        "Skydio X10": {"sensor_width": 13.1072, "sensor_height": 9.8304, "desc": "Skydio X10 VT300-L Wide Camera"}
+      }
+    },
+    "Custom": {
+      "priority": 99,
+      "mapping": "direct",
+      "comment": "字段已与标准化输出结构对齐，直接读取即可"
+    }
+  }
+}

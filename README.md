@@ -214,6 +214,7 @@ Phytoplankton_UAV_Project/
 │ ├── preprocess/
 │ │ ├── orthorectify.py
 │ │ └── parse_drone_metadata.py
+│ │ └── brand_mapping.json
 │ └── simulation/
 │ ├── generate_prediction_mask.py
 │ └── extract_growth_pattern.py
