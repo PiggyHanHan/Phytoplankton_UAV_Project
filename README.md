@@ -51,7 +51,7 @@
 
 **具体职责**
 
-- **数据采集配合**：对接航拍组，明确拍摄规范（垂直90°俯拍、相机使用原生默认焦距（1x），禁止光学/数字变焦，M档RAW、10-50m高度、覆盖晴天/阴天/雾天）。**采集训练数据时，可不限定同一拍摄位置**；**为演示和时序预测而进行的连续监测，则需确保每次飞行尽量覆盖同一目标水体（同一池塘），保持中心 GPS 和高度基本一致**。必须记录每张图像的无人机飞行参数（高度、GPS、俯仰横滚偏航角、相机内参等），按「拍摄日期+天气+序号」命名图像及参数文件（如 `20240315_sunny_001.RAW` 和 `20240315_sunny_001.json`），分别归档至 `data/01_raw/images/` 和 `data/01_raw/drone_json/`。
+- **数据采集配合**：对接航拍组，明确拍摄规范（垂直90°俯拍、相机使用原生默认焦距（1x），禁止光学/数字变焦，锁定“日光”预设（或相应天气预设如“阴天”），禁止自动白平衡，M档RAW、10-50m高度、覆盖晴天/阴天/雾天）。**采集训练数据时，可不限定同一拍摄位置**；**为演示和时序预测而进行的连续监测，则需确保每次飞行尽量覆盖同一目标水体（同一池塘），保持中心 GPS 和高度基本一致**。必须记录每张图像的无人机飞行参数（高度、GPS、俯仰横滚偏航角、相机内参等），按「拍摄日期+天气+序号」命名图像及参数文件（如 `20240315_sunny_001.RAW` 和 `20240315_sunny_001.json`），分别归档至 `data/01_raw/images/` 和 `data/01_raw/drone_json/`。
 - **几何校正执行**：调用 AI 模块提供的正射校正脚本 `utils/preprocess/orthorectify.py`，批量读取 `data/01_raw/` 中的原始图像与参数文件，输出几何校正后的正射影像 PNG 至 `data/02_preprocessed/images/`，同时生成包含 GSD 等信息的元数据文件至 `data/02_preprocessed/meta/`，文件名保持不变（扩展名改为`.png`/`.json`）。
 - **像素级标注**：使用 LabelMe 对 `data/02_preprocessed/images/` 中的校正图像进行标注，生成 JSON 标注文件存入 `data/03_labeled/labels_json/`，掩码图存入 `data/03_labeled/masks/`。
 - **数据标准化**：撰写数据规范文档，确保文件命名、参数格式、目录结构符合项目约定。在规范中明确说明：文件名所含的日期字段是构建时序序列的时间戳，天气字段是分割模型路由和数据集分类的关键标签。
@@ -66,7 +66,15 @@
 
 **具体职责**
 
-- **正射校正脚本提供**：编写并交付基于无人机参数的正射校正脚本 `utils/preprocess/orthorectify.py`，支持批量读取 `01_raw/` 中的 RAW 图像及同名参数文件，输出几何校正后的 PNG 图像至 `02_preprocessed/images/`，并同步输出元数据至 `02_preprocessed/meta/`。
+- **轻量标准化脚本提供**：编写并交付 `utils/preprocess/orthorectify.py`，功能为：
+  - 校验飞行姿态（俯仰、横滚）是否在允许范围内，否则拒绝处理并提示重拍；
+  - 校验白平衡模式是否为预设固定值，若为自动则拒绝并提示；
+  - 记录并校验焦距是否与**基准值**一致(做一个开关，训练时传入false，用户端默认true)；
+  - 假设图像为垂直正射，基于内参计算理论 GSD；
+  - 将原图等比缩放至长边 ≤1024，居中黑边填充为 1024×1024 PNG；
+  - 同步输出包含有效GSD、有效区域边界的元数据文件。
+  - 注意：**本脚本不执行透视变换或视场畸变矫正**，所有矫正依赖严格的拍摄规范。
+- **无人机参数**
 - **天气分类模型构建**：使用 **多类天气图片数据集**（存放于 `data/weather_public/`）训练轻量级天气分类模型（ResNet-18），用于自动识别输入航拍图为“晴天”、“阴天”或“雾天”，权重保存至 `models/weather_classifier/best_weather_model.pth`。
 - **多条件分割模型训练**：从 `data/03_labeled/` 读取图像与掩码，按文件名中的天气标签划分三个子数据集，分别训练三个独立的 DeepLabV3+ 语义分割模型，权重分别保存至 `models/deeplabv3plus/sunny/`、`cloudy/`、`hazy/`。**同时使用全部标注数据训练一个不区分天气的统一 DeepLabV3+ 模型，权重保存至 `models/deeplabv3plus/combined/`，并在训练过程中计算并记录 mIoU、Accuracy 等指标。**
 - **推理与量化计算**：推理脚本 `models/predict_pipeline.py` 接收输入图像及对应元数据，自动调用天气分类模型，路由至对应 DeepLabV3+ 模型，输出分割掩码图至 `outputs/masks/`。**同时读取校正元数据中的空间分辨率信息，将像素面积转换为实际面积（平方米/亩）**，输出量化数据（JSON/CSV）至 `outputs/quantifications/`。
@@ -205,7 +213,7 @@ Phytoplankton_UAV_Project/
 ├── utils/
 │ ├── preprocess/
 │ │ ├── orthorectify.py
-│ │ └── README.md
+│ │ └── parse_drone_metadata.py
 │ └── simulation/
 │ ├── generate_prediction_mask.py
 │ └── extract_growth_pattern.py
@@ -285,6 +293,7 @@ Phytoplankton_UAV_Project/
 - **图像尺寸**：统一为 `1024×1024`。
 - **文件格式**：结构化数据用 JSON/CSV，图像用 PNG，标注文件用 LabelMe 标准 JSON。
 - **相机焦距**：必须在无人机 JSON 中提供 `camera.focal_length`，且数值应为相机实际焦距（换算到35mm等效焦距的说明见后）。连续监测同一池塘时，焦距需保持与首次上传基准值一致。
+- **白平衡**：JSON 中需记录实际使用的白平衡模式，且必须为非自动模式。
 
 ### 8.2 分工边界约定
 

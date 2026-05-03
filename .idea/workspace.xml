@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.2 时间规划">
+    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.2 正射+fov均改为对用户的要求">
+      <change afterPath="$PROJECT_DIR$/models/deeplabv3plus/combined/train.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Personal_Readme/Yiran_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Yiran_Readme.md" afterDir="false" />
@@ -241,7 +243,8 @@
       <workItem from="1777386136781" duration="33000" />
       <workItem from="1777386204558" duration="9000" />
       <workItem from="1777731707528" duration="1505000" />
-      <workItem from="1777735108268" duration="308000" />
+      <workItem from="1777735108268" duration="430000" />
+      <workItem from="1777770818037" duration="1142000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -379,7 +382,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777733733761</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="5.2 正射+fov均改为对用户的要求">
+      <option name="closed" value="true" />
+      <created>1777735496183</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1777735496183</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -397,7 +408,8 @@
     <MESSAGE value="4.26基线对比 双数学建模" />
     <MESSAGE value="5.2 多模态（条件语义分割）升级方案考量" />
     <MESSAGE value="5.2 时间规划" />
-    <option name="LAST_COMMIT_MESSAGE" value="5.2 时间规划" />
+    <MESSAGE value="5.2 正射+fov均改为对用户的要求" />
+    <option name="LAST_COMMIT_MESSAGE" value="5.2 正射+fov均改为对用户的要求" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

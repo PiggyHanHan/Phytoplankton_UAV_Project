@@ -15,14 +15,16 @@
    - 编写 `utils/simulation/generate_prediction_mask.py`，接收基准掩码路径、面积变化率以及**空间生长规则参数**（扩张方向偏好、边缘权重等），生成预测分布图。
    - 编写 `utils/simulation/extract_growth_pattern.py`，从两次实测掩码中提取斑块变化的统计特征（扩张速率、方向分布等），供数模组调用。
    - 附带详细调用说明，交付刘俊辉使用。
-6. **轻量正射校正脚本开发与交付**：
-   - 编写 `utils/preprocess/orthorectify.py`，功能简化为：
-     * 校验垂直姿态（pitch、roll）和焦距一致性；
-     * 当满足垂直拍摄、焦距固定的条件时，基于理论 GSD 将原始图像等比缩放、居中填充至 1024×1024，输出 PNG 图像及包含有效 GSD、有效区域边界的元数据文件；
-     * 若垂直度或焦距偏差超出阈值，则终止处理并提示原因。
-   - 交付数据模块（贺一冉）执行。
-7. 数据格式规范制定：约定 `outputs/masks/` 的命名规则和 `outputs/quantifications/` 的 JSON 字段。
-8. **对比实验与评估报告**：完成四种分割模型训练后，在相同测试标准下计算 mIoU、Accuracy，产出两个对比表格（宏观对比与分天气细节），附于模型评估报告。
+6. **轻量标准化脚本开发与交付**：编写 `utils/preprocess/orthorectify.py`，实现：
+   - 姿态与白平衡校验；
+   - 垂直假设下的 GSD 计算；
+   - 等比缩放、黑边填充至 1024×1024；
+   - 输出 PNG 图像及伴元数据 JSON；
+   - 不进行透视变换或 FOV 校正；
+   - 交付数据模块执行。
+7. **设计并交付无人机参数解析脚本**：编写 `parse_drone_metadata.py`，供标准化脚本`orthorectify.py`使用，确保 GSD 数据的有效提取。
+8. 数据格式规范制定：约定 `outputs/masks/` 的命名规则和 `outputs/quantifications/` 的 JSON 字段。
+9. **对比实验与评估报告**：完成四种分割模型训练后，在相同测试标准下计算 mIoU、Accuracy，产出两个对比表格（宏观对比与分天气细节），附于模型评估报告。
 
 ❌ **绝不涉及**
 - 不参与任何原始图像采集、预处理。
@@ -78,7 +80,8 @@
 3. 一个统一 DeepLabV3+ 对比模型权重及训练脚本。
 4. 总推理脚本 `predict_pipeline.py`。
 5. 空间仿真脚本 `generate_prediction_mask.py` 及 `extract_growth_pattern.py`。
-6. 轻量标准化脚本 `orthorectify.py`（基于垂直拍摄假设的缩放填充 + 校验）及使用说明。
-7. 实测分割掩码图与量化数据。
-8. `outputs/` 数据格式规范文档。
-9. 模型评估报告（含对比表格及天气自适应必要性分析）。
+6. 轻量标准化脚本 `orthorectify.py`（姿态/白平衡校验 + 缩放填充）及使用说明。
+7. 设计并交付无人机参数解析脚本 `parse_drone_metadata.py`，供标准化脚本`orthorectify.py`使用，确保 GSD 数据的有效提取。
+8. 实测分割掩码图与量化数据。
+9. `outputs/` 数据格式规范文档。
+10. 模型评估报告（含对比表格及天气自适应必要性分析）。
