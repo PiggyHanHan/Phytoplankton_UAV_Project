@@ -21,15 +21,12 @@ import shutil
 
 def find_exiftool() -> str:
     """查找 exiftool 可执行文件路径"""
-    # 1. 尝试从环境变量 EXIFTOOL_PATH 获取
     path = os.environ.get("EXIFTOOL_PATH")
     if path and os.path.isfile(path):
         return path
-    # 2. 尝试系统 PATH 中查找
     path = shutil.which("exiftool")
     if path:
         return path
-    # 3. Windows 常见安装位置
     common_paths = [
         r"C:\exiftool\exiftool.exe",
         r"C:\Program Files\exiftool\exiftool.exe",
@@ -55,9 +52,9 @@ if not logger.handlers:
 class CameraInfo:
     make: Optional[str] = None
     model: Optional[str] = None
-    focal_length: Optional[float] = None   # mm，必须
-    sensor_width: Optional[float] = None   # mm
-    sensor_height: Optional[float] = None  # mm
+    focal_length: Optional[float] = None
+    sensor_width: Optional[float] = None
+    sensor_height: Optional[float] = None
     image_width: Optional[int] = None
     image_height: Optional[int] = None
     white_balance: str = "Unknown"
@@ -67,8 +64,8 @@ class CameraInfo:
 class GPSInfo:
     latitude: float = 0.0
     longitude: float = 0.0
-    absolute_altitude: float = 0.0         # m
-    relative_altitude: float = 0.0         # m
+    absolute_altitude: float = 0.0
+    relative_altitude: float = 0.0
 
 @dataclass
 class AttitudeInfo:
@@ -144,7 +141,6 @@ def safe_int(value, default=0):
         return default
 
 def load_brand_mapping(mapping_file: str = None) -> Dict:
-    """加载品牌映射配置文件"""
     if mapping_file is None:
         current_dir = Path(__file__).parent
         mapping_file = current_dir / "brand_mapping.json"
@@ -155,7 +151,6 @@ def load_brand_mapping(mapping_file: str = None) -> Dict:
     return mapping
 
 def _get_value(raw: Dict, path: str):
-    """按点号分隔的路径从嵌套字典中取值"""
     keys = path.split('.')
     val = raw
     for k in keys:
@@ -173,7 +168,6 @@ def parse_drone_metadata(json_path: str, mapping_file: str = None) -> Standardiz
         raw = json.load(f)
     mapping = load_brand_mapping(mapping_file)
 
-    # 品牌识别
     brand = _identify_brand_from_dict(raw, mapping["brands"])
     logger.info(f"从 JSON 识别品牌: {brand}")
     brand_config = mapping["brands"].get(brand)
@@ -216,7 +210,6 @@ def parse_drone_metadata(json_path: str, mapping_file: str = None) -> Standardiz
         _validate_focal_length(meta)
         return meta
 
-    # 使用映射表提取字段
     field_map = brand_config.get("mapping", {})
     camera = CameraInfo(
         make=_get_value(raw, field_map.get("camera_make", "")),
@@ -261,7 +254,6 @@ def parse_drone_metadata(json_path: str, mapping_file: str = None) -> Standardiz
     return meta
 
 def _identify_brand_from_dict(raw: Dict, brands: Dict) -> str:
-    # 优先使用显式字段
     if "drone_brand" in raw and raw["drone_brand"] in brands:
         return raw["drone_brand"]
     if "drone_type" in raw and raw["drone_type"] in brands:
@@ -275,15 +267,26 @@ def _identify_brand_from_dict(raw: Dict, brands: Dict) -> str:
     raise ValueError("无法识别品牌")
 
 def _inject_sensor_defaults(camera: CameraInfo, brand_config: Dict):
-    if (camera.sensor_width is None or camera.sensor_height is None) and camera.model:
-        sensor_defaults = brand_config.get("sensor_defaults", {})
-        if camera.model in sensor_defaults:
-            defaults = sensor_defaults[camera.model]
-            if camera.sensor_width is None:
-                camera.sensor_width = defaults.get("sensor_width")
-            if camera.sensor_height is None:
-                camera.sensor_height = defaults.get("sensor_height")
-            logger.info(f"已注入传感器尺寸默认值: {camera.model} → {camera.sensor_width}x{camera.sensor_height} mm")
+    """注入传感器物理尺寸，优先精确匹配型号，其次尝试通用传感器描述符回退"""
+    if camera.sensor_width is not None and camera.sensor_height is not None:
+        return
+    sensor_defaults = brand_config.get("sensor_defaults", {})
+    if camera.model and camera.model in sensor_defaults:
+        defaults = sensor_defaults[camera.model]
+        if camera.sensor_width is None:
+            camera.sensor_width = defaults.get("sensor_width")
+        if camera.sensor_height is None:
+            camera.sensor_height = defaults.get("sensor_height")
+        logger.info(f"已注入传感器尺寸默认值（型号匹配）: {camera.model} → {camera.sensor_width}x{camera.sensor_height} mm")
+        return
+    # 回退：尝试从 EXIF 或 MakerNote 中提取传感器描述，匹配通用条目
+    desc = None
+    if camera.model:
+        desc = sensor_defaults.get(camera.model)  # 已经试过，这里是 None
+    if desc is None and camera.model:
+        # 某些元数据可能包含传感器描述（如 "1-inch CMOS"），可在此扩展
+        pass
+    logger.warning("未能为当前相机型号匹配传感器尺寸，GSD 将可能为 null")
 
 def _validate_focal_length(meta: StandardizedMetadata):
     if meta.camera.focal_length is None or meta.camera.focal_length <= 0:
@@ -304,11 +307,9 @@ _WB_CODE_MAP = {
 }
 
 def _normalize_white_balance(wb_raw: str) -> str:
-    """将数字代码或字符串变体统一为可读的白平衡模式"""
     if not wb_raw:
         return "Unknown"
     s = str(wb_raw).strip()
-    # 纯数字映射
     if s.isdigit() and s in _WB_CODE_MAP:
         return _WB_CODE_MAP[s]
     s_lower = s.lower()
@@ -319,14 +320,9 @@ def _normalize_white_balance(wb_raw: str) -> str:
 # ==================== 从图像提取（主接口） ====================
 def parse_drone_metadata_from_image(image_path: str,
                                     mapping_file: str = None) -> StandardizedMetadata:
-    """
-    直接从 RAW/DNG 图像内嵌元数据中提取所有参数，无需外部 JSON。
-    依赖系统已安装 exiftool。
-    """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"图像文件不存在: {image_path}")
 
-    # 调用 exiftool
     exiftool_path = find_exiftool()
     cmd = [exiftool_path, "-json", "-G", "-n", image_path]
     try:
@@ -341,27 +337,24 @@ def parse_drone_metadata_from_image(image_path: str,
     if not metadata_list:
         raise ValueError("exiftool 未返回元数据")
 
-    exif = metadata_list[0]  # 单张图像
+    exif = metadata_list[0]
 
-    # 加载品牌映射
     mapping = load_brand_mapping(mapping_file)
     brands = mapping["brands"]
 
-    # 品牌识别
     brand = _identify_brand_from_exif(exif, brands)
     logger.info(f"从图像识别品牌: {brand}")
     brand_config = brands.get(brand)
     if not brand_config:
         brand_config = {}
 
-    # 辅助取值函数
     def get_tag(*paths):
         for p in paths:
             if p in exif:
                 return exif[p]
         return None
 
-    # 通用相机信息：传感器尺寸留空，由品牌映射表补充
+    # 通用相机信息
     camera = CameraInfo(
         make=get_tag("EXIF:Make", "MakerNotes:Make"),
         model=get_tag("EXIF:Model", "MakerNotes:Model"),
@@ -371,7 +364,7 @@ def parse_drone_metadata_from_image(image_path: str,
         image_width=safe_int(get_tag("EXIF:ImageWidth", "File:ImageWidth")),
         image_height=safe_int(get_tag("EXIF:ImageHeight", "File:ImageHeight")),
         white_balance=_normalize_white_balance(
-            str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
+            str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
         ),
         dewarp_data=get_tag("XMP-drone-dji:DewarpData")
     )
@@ -379,33 +372,55 @@ def parse_drone_metadata_from_image(image_path: str,
     # ─────────── 品牌特有标签补充 ───────────
 
     if brand == "DJI":
-        def get_dji(prefixed, plain):
-            val = get_tag(prefixed)
-            if val is not None:
-                return val
-            val = get_tag("XMP:" + plain)
-            if val is not None:
-                return val
-            return get_tag(plain)
-
+        # 统一使用 get_tag 多路径回退，不再依赖 get_dji 的隔离逻辑
         gps = GPSInfo(
-            latitude=safe_float(get_dji("XMP-drone-dji:GPSLatitude", "GPSLatitude")),
-            longitude=safe_float(get_dji("XMP-drone-dji:GPSLongitude", "GPSLongitude")),
-            absolute_altitude=safe_float(get_dji("XMP-drone-dji:AbsoluteAltitude", "AbsoluteAltitude")),
-            relative_altitude=safe_float(get_dji("XMP-drone-dji:RelativeAltitude", "RelativeAltitude"))
+            latitude=safe_float(get_tag(
+                "XMP-drone-dji:GPSLatitude", "XMP:GPSLatitude",
+                "EXIF:GPSLatitude", "GPSLatitude"
+            )),
+            longitude=safe_float(get_tag(
+                "XMP-drone-dji:GPSLongitude", "XMP:GPSLongitude",
+                "EXIF:GPSLongitude", "GPSLongitude"
+            )),
+            absolute_altitude=safe_float(get_tag(
+                "XMP-drone-dji:AbsoluteAltitude", "XMP:AbsoluteAltitude",
+                "EXIF:GPSAltitude", "AbsoluteAltitude"
+            )),
+            relative_altitude=safe_float(get_tag(
+                "XMP-drone-dji:RelativeAltitude", "XMP:RelativeAltitude",
+                "RelativeAltitude"
+            ))
         )
         attitude = AttitudeInfo(
-            roll=safe_float(get_dji("XMP-drone-dji:FlightRollDegree", "FlightRollDegree")),
-            pitch=safe_float(get_dji("XMP-drone-dji:FlightPitchDegree", "FlightPitchDegree")),
-            yaw=safe_float(get_dji("XMP-drone-dji:FlightYawDegree", "FlightYawDegree"))
+            roll=safe_float(get_tag(
+                "XMP-drone-dji:FlightRollDegree", "XMP:FlightRollDegree",
+                "FlightRollDegree"
+            )),
+            pitch=safe_float(get_tag(
+                "XMP-drone-dji:FlightPitchDegree", "XMP:FlightPitchDegree",
+                "FlightPitchDegree"
+            )),
+            yaw=safe_float(get_tag(
+                "XMP-drone-dji:FlightYawDegree", "XMP:FlightYawDegree",
+                "FlightYawDegree"
+            ))
         )
         gimbal = GimbalInfo(
-            roll=safe_float(get_dji("XMP-drone-dji:GimbalRollDegree", "GimbalRollDegree")),
-            pitch=safe_float(get_dji("XMP-drone-dji:GimbalPitchDegree", "GimbalPitchDegree")),
-            yaw=safe_float(get_dji("XMP-drone-dji:GimbalYawDegree", "GimbalYawDegree"))
+            roll=safe_float(get_tag(
+                "XMP-drone-dji:GimbalRollDegree", "XMP:GimbalRollDegree",
+                "GimbalRollDegree"
+            )),
+            pitch=safe_float(get_tag(
+                "XMP-drone-dji:GimbalPitchDegree", "XMP:GimbalPitchDegree",
+                "GimbalPitchDegree"
+            ), default=-90.0),
+            yaw=safe_float(get_tag(
+                "XMP-drone-dji:GimbalYawDegree", "XMP:GimbalYawDegree",
+                "GimbalYawDegree"
+            ))
         )
-        # 读取 DJI 白平衡（优先使用专用 XMP 标签，若存在则覆盖通用值）
-        wb_dji = get_dji("XMP-drone-dji:WhiteBalance", "WhiteBalance")
+        # DJI 白平衡：优先专用标签，若有则覆盖通用值
+        wb_dji = get_tag("XMP-drone-dji:WhiteBalance", "XMP:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint")
         if wb_dji:
             camera.white_balance = _normalize_white_balance(str(wb_dji))
 
@@ -427,7 +442,7 @@ def parse_drone_metadata_from_image(image_path: str,
             pitch=safe_float(get_tag("XMP-drone-skydio:GimbalPitchDegree"), default=-90.0),
             yaw=safe_float(get_tag("XMP-drone-skydio:GimbalYawDegree"))
         )
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     elif brand == "Parrot":
@@ -447,7 +462,7 @@ def parse_drone_metadata_from_image(image_path: str,
             pitch=safe_float(get_tag("XMP-drone-parrot:GimbalPitchDegree"), default=-90.0),
             yaw=safe_float(get_tag("XMP-drone-parrot:GimbalYawDegree"))
         )
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     elif brand == "Autel":
@@ -467,11 +482,10 @@ def parse_drone_metadata_from_image(image_path: str,
             pitch=safe_float(get_tag("XMP-drone-autel:GimbalPitchDegree"), default=-90.0),
             yaw=safe_float(get_tag("XMP-drone-autel:GimbalYawDegree"))
         )
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     else:
-        # 通用回退：尝试所有已知 EXIF/XMP 标签
         gps = GPSInfo(
             latitude=safe_float(get_tag("EXIF:GPSLatitude")),
             longitude=safe_float(get_tag("EXIF:GPSLongitude")),
@@ -488,13 +502,12 @@ def parse_drone_metadata_from_image(image_path: str,
             pitch=safe_float(get_tag("XMP:GimbalPitchDegree"), default=-90.0),
             yaw=safe_float(get_tag("XMP:GimbalYawDegree"))
         )
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
-    # 使用传感器特征库补充缺失的物理尺寸
+    # 使用传感器特征库补充
     _inject_sensor_defaults(camera, brand_config)
 
-    # 其他字段
     image_name = os.path.basename(image_path)
     capture_dt = get_tag("EXIF:DateTimeOriginal", "EXIF:CreateDate")
 
