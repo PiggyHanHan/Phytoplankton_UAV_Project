@@ -10,7 +10,7 @@
 - **标准化输出**：将 RAW 图像解码、等比缩放至长边 ≤1024（不放大）、居中黑边填充为 1024×1024 PNG，同步生成包含 GSD、有效区域、原始尺寸等信息的元数据 JSON。
 
 支持 **“用户端”** 和 **“训练数据”** 两种处理模式，适配不同的校验强度。
-- 注：已对大部分主流机型进行适配，过时机型可能由于参数字段缺失或无法识别而无法上传
+
 ---
 
 ## 二、环境要求
@@ -125,7 +125,59 @@ data/02_preprocessed/
 
 ---
 
-## 七、常见问题及排查
+## 七、传感器尺寸适配说明
+
+计算 GSD 需要准确的传感器物理尺寸（宽 × 高，单位 mm）。脚本通过 `brand_mapping.json` 为常见无人机型号预置了默认值。
+
+### 7.1 已适配机型（内置传感器默认值）
+
+| 品牌 | 型号 | 传感器宽 (mm) | 传感器高 (mm) | 对应产品 |
+|:---|:---|:---|:---|:---|
+| DJI | FC2204 | 13.2 | 8.8 | Mavic Air 2S |
+| DJI | FC3170 | 6.4 | 4.8 | Mavic Air 2 |
+| DJI | FC3411 | 17.3 | 13.0 | Mavic 3 Wide |
+| DJI | FC3501 | 13.2 | 8.8 | Phantom 4 Pro |
+| DJI | FC6310 | 13.2 | 8.8 | Phantom 4 RTK |
+| DJI | FC7303 | 13.2 | 8.8 | Mavic 2 Pro |
+| DJI | FC1102 | 6.17 | 4.55 | Mini 2 |
+| DJI | FC3582 | 9.7 | 7.3 | Mini 3 |
+| DJI | FC8482 | 9.7 | 7.3 | Mini 4 Pro |
+| DJI | FC4382 | 8.8 | 6.6 | Air 3 (广角) |
+| Autel | XT705 | 13.2 | 8.8 | EVO II Pro |
+| Autel | XT706 | 6.4 | 4.8 | EVO II 8K |
+| Autel | XT709 | 7.4 | 5.6 | EVO Lite |
+| Parrot | ANAFI Ai | 5.76 | 4.29 | ANAFI Ai |
+| Parrot | ANAFI USA | 6.4 | 4.8 | ANAFI USA |
+| Parrot | ANAFI | 6.17 | 4.55 | ANAFI |
+| Skydio | Skydio 2 | 6.17 | 4.55 | Skydio 2 |
+| Skydio | Skydio 2+ | 6.17 | 4.55 | Skydio 2+ |
+| Skydio | Skydio X2 | 6.17 | 4.55 | Skydio X2 |
+| Skydio | Skydio X10 | 13.1072 | 9.8304 | Skydio X10 广角 |
+
+### 7.2 无法适配的机型及原因
+
+以下情况将导致传感器尺寸未知，GSD 输出为 `null`（图像处理与校验不受影响）：
+
+- **未列入上表的新型无人机**：例如 DJI 尚未收录的新型号，或小众品牌无人机。脚本仅通过相机型号匹配，无法自动推算传感器尺寸。
+- **品牌被识别为 `Custom` 或未知品牌**：如果图像的 EXIF 中 `Make` 字段未命中 DJI、Autel、Parrot、Skydio，则会被识别为 `Custom`，此时没有可用的默认尺寸。
+- **通用传感器描述符回退未启用**：`brand_mapping.json` 中定义了如 `"1-inch CMOS"`、`"1/1.3-inch CMOS"` 等通用条目，但当前脚本**不会**根据传感器描述字符串自动匹配这些条目，仅当出现完全相同的型号名时才生效。
+
+### 7.3 如何手动补充缺失的传感器尺寸
+
+如果遇到上述情况且需要 GSD 数据，可修改 `utils/preprocess/brand_mapping.json`，在对应品牌的 `sensor_defaults` 中添加新条目：
+
+```json
+"新机型代号": {
+  "sensor_width": 13.2,
+  "sensor_height": 8.8,
+  "desc": "自定义描述"
+}
+```
+修改后无需重启任何服务，重新运行 `orthorectify.py` 即可生效。
+
+---
+
+## 八、常见问题及排查
 
 | 问题 | 可能原因 | 解决方法 |
 |:---|:---|:---|
@@ -141,7 +193,7 @@ data/02_preprocessed/
 
 ---
 
-## 八、文件清单
+## 九、文件清单
 
 确保 `utils/preprocess/` 目录下包含以下文件：
 
