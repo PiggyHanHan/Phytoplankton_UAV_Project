@@ -151,9 +151,13 @@ def decode_raw(raw_path: str) -> Image.Image:
     return Image.fromarray(rgb)
 
 def resize_and_pad(image: Image.Image) -> Tuple[Image.Image, Tuple[float, float, float, float]]:
-    """等比缩放至长边≤1024，居中黑边填充到 1024×1024，返回图像和有效区域归一化边界"""
+    """等比缩放至长边≤1024（若原图长边小于1024则保持原尺寸），居中黑边填充到 1024×1024，返回图像和有效区域归一化边界"""
     w, h = image.size
-    scale = IMAGE_SIZE / max(w, h)
+    max_edge = max(w, h)
+    if max_edge > IMAGE_SIZE:
+        scale = IMAGE_SIZE / max_edge
+    else:
+        scale = 1.0   # 不放大，保持原分辨率
     new_w, new_h = int(round(w * scale)), int(round(h * scale))
     resized = image.resize((new_w, new_h), Image.LANCZOS)
     padded = Image.new("RGB", (IMAGE_SIZE, IMAGE_SIZE), (0, 0, 0))

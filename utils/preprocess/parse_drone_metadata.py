@@ -266,10 +266,13 @@ def _identify_brand_from_dict(raw: Dict, brands: Dict) -> str:
         return raw["drone_brand"]
     if "drone_type" in raw and raw["drone_type"] in brands:
         return raw["drone_type"]
+    # 按优先级检测字段，且要求字段值包含品牌名（不区分大小写）
     for brand, config in sorted(brands.items(), key=lambda x: x[1].get("priority", 99)):
         for field in config.get("detect_fields", []):
             if field in raw:
-                return brand
+                val = str(raw[field]).lower()
+                if brand.lower() in val:
+                    return brand
     raise ValueError("无法识别品牌")
 
 def _inject_sensor_defaults(camera: CameraInfo, brand_config: Dict):
@@ -333,16 +336,13 @@ def parse_drone_metadata_from_image(image_path: str,
                 return exif[p]
         return None
 
-    # 通用相机信息
-    # 传感器物理尺寸：优先从 EXIF 专用标签获取，如果没有，就留空交由品牌映射表自动补全
-    sensor_width_raw = get_tag("EXIF:FocalPlaneXResolution")  # 某些相机可能用这个标签
-    sensor_height_raw = get_tag("EXIF:FocalPlaneYResolution")
+    # 通用相机信息：传感器尺寸留空，由品牌映射表补充
     camera = CameraInfo(
         make=get_tag("EXIF:Make", "MakerNotes:Make"),
         model=get_tag("EXIF:Model", "MakerNotes:Model"),
         focal_length=safe_float(get_tag("EXIF:FocalLength"), default=None),
-        sensor_width=safe_float(sensor_width_raw, default=None),
-        sensor_height=safe_float(sensor_height_raw, default=None),
+        sensor_width=None,          # 由 _inject_sensor_defaults 从映射表补全
+        sensor_height=None,
         image_width=safe_int(get_tag("EXIF:ImageWidth", "File:ImageWidth")),
         image_height=safe_int(get_tag("EXIF:ImageHeight", "File:ImageHeight")),
         white_balance=str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance") or "Unknown"),

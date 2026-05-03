@@ -127,7 +127,7 @@
 
 ## 🔗 4. 项目全流程执行链路（不可跳步）
 
-1. 航拍组按规范完成水体无人机航拍（覆盖晴天/阴天/雾天），交付原始航拍图像与配套无人机参数文件给贺一冉。图像命名为 `YYYYMMDD_天气_序号.RAW`，参数文件同名 `.json`，分别存入 `data/01_raw/images/` 和 `data/01_raw/drone_json/`。
+1. 航拍组按规范完成水体无人机航拍（覆盖晴天/阴天/雾天），交付原始航拍图像与配套无人机参数文件给贺一冉。图像命名为 `YYYYMMDD_天气_序号.RAW`。
 2. 贺一冉使用 AI 模块提供的正射校正脚本 `utils/preprocess/orthorectify.py`，批量处理 `01_raw/` 中的图像与参数，输出几何校正后的标准 PNG 图像至 `data/02_preprocessed/images/`，同步输出含 GSD 的元数据至 `data/02_preprocessed/meta/`，文件名保持不变（扩展名改为.png / .json）。
 3. 贺一冉使用 LabelMe 对校正图像完成像素级标注，生成 JSON 标注文件存入 `data/03_labeled/labels_json/`，掩码图存入 `data/03_labeled/masks/`，交付吴天宇。
 4. 吴天宇基于 `data/weather_public/` 中的公开数据集训练天气分类模型；基于 `data/03_labeled/` 完成**四个** DeepLabV3+ 模型训练（三个天气专属模型 + 一个不区分天气的统一对比模型），并在训练过程中统计各模型的 mIoU、Accuracy 等指标，产出对比评估表格；编写推理管道及空间仿真脚本（含规律提取工具），并交付使用说明给刘俊辉。
