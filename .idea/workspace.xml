@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.3 无人机参数解析+矫正脚本开发">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" afterDir="false" />
-    </list>
+    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.3 无人机参数解析+矫正脚本开发" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -42,6 +37,9 @@
     &quot;accountId&quot;: &quot;55f169f7-e734-466a-a7c9-128886df87aa&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="AISelfReview" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -240,7 +238,7 @@
       <workItem from="1777386204558" duration="9000" />
       <workItem from="1777731707528" duration="1505000" />
       <workItem from="1777735108268" duration="430000" />
-      <workItem from="1777770818037" duration="4778000" />
+      <workItem from="1777770818037" duration="5079000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -410,7 +408,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777774930754</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="5.3 无人机参数解析+矫正脚本开发">
+      <option name="closed" value="true" />
+      <created>1777775905493</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1777775905493</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
