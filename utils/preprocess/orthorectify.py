@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-正射校正脚本 (orthorectify.py)  — 双模式版本
+正射校正脚本 (orthorectify.py) —— 图像直读版
 ==============================================
-- 用户端模式 (--mode user)：全规范校验（姿态、白平衡、GPS、高度、焦距一致性）
-- 训练数据模式 (--mode training)：仅校验姿态与白平衡，放宽空间与焦距限制
+直接从 RAW / DNG 文件中提取无人机参数（依赖 exiftool），
+无需额外的 JSON 参数文件。
 
-依赖：
-    pip install rawpy Pillow geopy    # geopy 可选，缺失时自动使用简化距离公式
+模式：
+- 用户端（--mode user）：全规范校验（姿态、白平衡、GPS、高度、焦距一致性）
+- 训练数据（--mode training）：仅校验姿态与白平衡，放宽空间与焦距限制
+
+依赖安装：
+    pip install rawpy Pillow
+    # exiftool 需要系统安装：sudo apt install exiftool   (Ubuntu) 或 brew install exiftool (macOS)
 """
 
 import os
@@ -22,30 +27,30 @@ from typing import Optional, Tuple
 import rawpy
 from PIL import Image
 
-# 尝试导入 geopy，若缺失则使用简化的球面距离公式
+# 尝试导入 geopy（可选），缺失时使用简化球面距离公式
 try:
     from geopy.distance import geodesic
     _USE_GEOPY = True
 except ImportError:
     _USE_GEOPY = False
 
-from parse_drone_metadata import parse_drone_metadata, StandardizedMetadata
+# 从同目录下的解析模块导入新函数
+from parse_drone_metadata import parse_drone_metadata_from_image, StandardizedMetadata
 
-# ─────────── 配置常量 ───────────
+# ─────────── 配置 ───────────
 IMAGE_SIZE = 1024
 MAX_LONG_EDGE = 1024
 ALLOWED_PITCH_DEVIATION = 3.0      # 云台俯仰 -90° ± 3°
 ALLOWED_ROLL_DEVIATION = 2.0       # 机体 / 云台横滚 ±2°
-RAW_DECODE_USE_CAMERA_WB = True
+RAW_DECODE_USE_CAMERA_WB = True    # 使用相机记录的白平衡
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("orthorectify")
 
-# ─────────── 辅助：简化球面距离（geopy 缺失时使用） ───────────
+# ─────────── 辅助：简化球面距离（无 geopy 时使用）───────────
 def _haversine_distance(lat1, lon1, lat2, lon2):
-    """返回两点间距离，单位：米"""
-    R = 6371000
+    R = 6371000  # 米
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
     a = (math.sin(dlat / 2) ** 2 +
@@ -59,7 +64,7 @@ def validate_attitude(meta: StandardizedMetadata):
     """姿态校验：云台俯仰 -90°±3°，横滚 ≤2°"""
     if abs(meta.gimbal.pitch + 90.0) > ALLOWED_PITCH_DEVIATION:
         raise ValueError(
-            f"云台俯仰角 {meta.gimbal.pitch}° 偏离垂直基准，允许 ±{ALLOWED_PITCH_DEVIATION}°"
+            f"云台俯仰角 {meta.gimbal.pitch}° 偏离垂直基准（-90°），允许 ±{ALLOWED_PITCH_DEVIATION}°"
         )
     for name, val in [("机体 Roll", meta.attitude.roll), ("云台 Roll", meta.gimbal.roll)]:
         if abs(val) > ALLOWED_ROLL_DEVIATION:
@@ -119,7 +124,7 @@ def compute_gsd(meta: StandardizedMetadata) -> Optional[float]:
     """计算理论 GSD（米/像素），缺失传感器尺寸时返回 None"""
     rel_alt = meta.gps.relative_altitude
     if rel_alt is None or rel_alt <= 0:
-        raise ValueError("相对高度缺失或无效")
+        raise ValueError("相对高度缺失或无效，无法计算 GSD")
     focal_m = meta.camera.focal_length / 1000.0   # mm → m
     sensor_w = meta.camera.sensor_width
     sensor_h = meta.camera.sensor_height
@@ -137,7 +142,7 @@ def compute_gsd(meta: StandardizedMetadata) -> Optional[float]:
 def decode_raw(raw_path: str) -> Image.Image:
     """解码 RAW 为 RGB PIL Image"""
     if not os.path.exists(raw_path):
-        raise FileNotFoundError(raw_path)
+        raise FileNotFoundError(f"RAW 文件不存在: {raw_path}")
     logger.info(f"解码 RAW: {raw_path}")
     with rawpy.imread(raw_path) as raw:
         rgb = raw.postprocess(use_camera_wb=RAW_DECODE_USE_CAMERA_WB,
@@ -206,9 +211,8 @@ def save_outputs(image: Image.Image, image_stem: str, output_dir: str,
         json.dump(meta, f, indent=2, ensure_ascii=False)
     logger.info(f"元数据已保存: {meta_path}")
 
-# ─────────── 单张处理（核心） ───────────
+# ─────────── 主处理函数（单张，直接从图像中提取元数据）───────────
 def process_single_image(raw_image_path: str,
-                         drone_json_path: str,
                          output_dir: str,
                          mode: str = "training",
                          check_focal_consistency: bool = False,
@@ -219,9 +223,16 @@ def process_single_image(raw_image_path: str,
                          gps_threshold: float = 5.0,
                          alt_threshold_percent: float = 10.0
                          ) -> Optional[float]:
-    meta = parse_drone_metadata(drone_json_path)
+    """
+    处理单张 RAW / DNG 图像。
+    - 直接从图像内嵌元数据提取参数（内部调用 parse_drone_metadata_from_image）。
+    - 根据 mode 决定校验策略。
+    - 返回更新后的基准焦距（若启用焦距校验）。
+    """
+    # 直接从图像中解析元数据
+    meta = parse_drone_metadata_from_image(raw_image_path)
 
-    # 通用校验
+    # 通用校验（所有模式都执行）
     validate_attitude(meta)
     validate_white_balance(meta)
 
@@ -231,15 +242,16 @@ def process_single_image(raw_image_path: str,
             new_baseline = validate_focal_consistency(meta, baseline_focal_length)
         else:
             new_baseline = baseline_focal_length
-        # 空间校验（用户端必须提供基准）
+        # 空间校验
         if ref_lat is None or ref_lon is None or ref_alt is None:
             logger.warning("用户端模式缺少基准 GPS/高度，将跳过空间校验")
         else:
             validate_spatial(meta, ref_lat, ref_lon, ref_alt,
                              gps_threshold, alt_threshold_percent)
-    else:  # training
+    else:  # training 模式
         new_baseline = baseline_focal_length
 
+    # 计算 GSD → 解码 RAW → 缩放填充 → 保存
     gsd = compute_gsd(meta)
     image = decode_raw(raw_image_path)
     processed_img, region = resize_and_pad(image)
@@ -247,30 +259,26 @@ def process_single_image(raw_image_path: str,
     save_outputs(processed_img, stem, output_dir, gsd, region, meta)
     return new_baseline
 
-# ─────────── 批量处理 ───────────
+# ─────────── 批量处理（无需 json_dir）───────────
 def process_batch(raw_dir: str,
-                  json_dir: str,
                   output_dir: str,
                   mode: str = "training",
                   check_focal: bool = False,
                   ref_lat: Optional[float] = None,
                   ref_lon: Optional[float] = None,
                   ref_alt: Optional[float] = None):
+    """
+    批量处理 raw_dir 下所有 .RAW 和 .DNG 文件。
+    """
     raw_files = list(Path(raw_dir).glob("*.RAW")) + list(Path(raw_dir).glob("*.DNG"))
     if not raw_files:
         logger.warning(f"{raw_dir} 中未找到 RAW/DNG 文件")
         return
     baseline = None
     for raw_path in raw_files:
-        stem = raw_path.stem
-        json_path = Path(json_dir) / f"{stem}.json"
-        if not json_path.exists():
-            logger.warning(f"缺少参数文件 {json_path}，跳过")
-            continue
         try:
             baseline = process_single_image(
                 raw_image_path=str(raw_path),
-                drone_json_path=str(json_path),
                 output_dir=str(output_dir),
                 mode=mode,
                 check_focal_consistency=check_focal,
@@ -285,22 +293,19 @@ def process_batch(raw_dir: str,
 # ─────────── 命令行入口 ───────────
 def main():
     parser = argparse.ArgumentParser(
-        description="无人机航拍图像正射校正预处理（用户端 / 训练双模式）"
+        description="无人机航拍图像正射校正预处理（直接从图像读取元数据）"
     )
-    # 单张参数
-    parser.add_argument("--raw", help="单张 RAW 图像路径")
-    parser.add_argument("--json", help="对应的无人机参数 JSON 路径")
-    # 批量参数
-    parser.add_argument("--raw-dir", help="批量 RAW 图像目录")
-    parser.add_argument("--json-dir", help="批量参数 JSON 目录")
-    # 通用
-    parser.add_argument("--out", required=True, help="输出目录")
+    # 输入
+    parser.add_argument("--raw", help="单张 RAW / DNG 图像路径")
+    parser.add_argument("--raw-dir", help="批量图像目录（自动遍历其中的 RAW/DNG）")
+    parser.add_argument("--out", required=True, help="输出根目录，如 data/02_preprocessed")
+    # 模式
     parser.add_argument("--mode", choices=["user", "training"], default="training",
-                        help="处理模式（user=全规范校验，training=放宽空间与焦距）")
+                        help="处理模式：user=全规范校验，training=放宽空间与焦距")
     parser.add_argument("--check-focal", action="store_true",
-                        help="启用焦距一致性校验（用户端建议使用）")
+                        help="启用焦距一致性校验（用户端建议开启）")
     # 用户端空间基准
-    parser.add_argument("--ref-lat", type=float, help="池塘基准纬度（用户端模式需要）")
+    parser.add_argument("--ref-lat", type=float, help="池塘基准纬度")
     parser.add_argument("--ref-lon", type=float, help="池塘基准经度")
     parser.add_argument("--ref-alt", type=float, help="池塘基准相对高度（米）")
     parser.add_argument("--gps-threshold", type=float, default=5.0,
@@ -310,12 +315,11 @@ def main():
 
     args = parser.parse_args()
 
-    if args.raw_dir or args.json_dir:
-        if not (args.raw_dir and args.json_dir):
-            parser.error("批量模式需同时指定 --raw-dir 和 --json-dir")
+    if args.raw_dir:
+        if not os.path.isdir(args.raw_dir):
+            parser.error("--raw-dir 必须是有效目录")
         process_batch(
             raw_dir=args.raw_dir,
-            json_dir=args.json_dir,
             output_dir=args.out,
             mode=args.mode,
             check_focal=args.check_focal,
@@ -323,10 +327,9 @@ def main():
             ref_lon=args.ref_lon,
             ref_alt=args.ref_alt
         )
-    elif args.raw and args.json:
+    elif args.raw:
         process_single_image(
             raw_image_path=args.raw,
-            drone_json_path=args.json,
             output_dir=args.out,
             mode=args.mode,
             check_focal_consistency=args.check_focal,
@@ -337,7 +340,7 @@ def main():
             alt_threshold_percent=args.alt_threshold
         )
     else:
-        parser.error("请提供单张 (--raw + --json) 或批量 (--raw-dir + --json-dir) 参数")
+        parser.error("请指定 --raw 或 --raw-dir")
 
 if __name__ == "__main__":
     main()

@@ -141,8 +141,7 @@
 
 ### 🗂️ 5.1 数据采集与预处理标注模块（贺一冉）
 
-- 原始无人机航拍图像（`data/01_raw/images/`）；
-- 与图像同名的无人机飞行参数文件（`data/01_raw/drone_json/`）；
+- 原始无人机航拍图像（`data/01_raw/`）；
 - 预处理干净图像数据集（`data/02_preprocessed/images/`）及元数据（`data/02_preprocessed/meta/`）；
 - LabelMe 标注全量数据集（`data/03_labeled/`）；
 - 数据规范文档。
@@ -181,8 +180,7 @@ Phytoplankton_UAV_Project/
 │
 ├── data/
 │ ├── 01_raw/
-│ │ ├── images/ # 原始RAW图像
-│ │ └── drone_json/ # 配套无人机参数JSON
+│ │ └──  20240315_sunny_001.DNG      ← 直接放原图（RAW / DNG）
 │ ├── 02_preprocessed/
 │ │ ├── images/ # 校正后PNG图像（1024×1024）
 │ │ └── meta/ # 校正元数据（含GSD）
@@ -234,8 +232,7 @@ Phytoplankton_UAV_Project/
 
 | 目录/文件                                     | 负责模块 | 读取来源 | 输出目标 |
 |:------------------------------------------| :--- | :--- | :--- |
-| `data/01_raw/images/`                     | 数据模块 | 航拍组采集 | 存放原始RAW图像 |
-| `data/01_raw/drone_json/`                 | 数据模块 | 航拍组采集 | 存放配套无人机参数JSON |
+| `data/01_raw/`                     | 数据模块 | 航拍组采集 | 存放原始RAW图像 |
 | `data/02_preprocessed/images/`            | 数据模块（执行） / AI模块（提供脚本） | `01_raw/` 中的图像+参数 | 校正、缩放、填充后的 1024×1024 PNG 图像 |
 | `data/02_preprocessed/meta/`              | 数据模块（执行） / AI模块（提供脚本） | 校正缩放参数 | 记录每张图像的 GSD、有效区域边界，供面积计算使用 |
 | `data/03_labeled/`                        | 数据模块 | 预处理图像 | JSON标注与掩码图，供AI模块训练分割模型 |
@@ -252,7 +249,6 @@ Phytoplankton_UAV_Project/
 ### 6.2 文件命名规范
 
 - **原始图像**：`YYYYMMDD_天气_序号.RAW`（如 `20240315_sunny_001.RAW`）
-- **无人机参数文件**：`YYYYMMDD_天气_序号.json`，与原始图像同名（如 `20240315_sunny_001.json`）
 - **预处理图像**：`YYYYMMDD_天气_序号.png`（如 `20240315_sunny_001.png`）
 - **校正图像元数据**：`YYYYMMDD_天气_序号_meta.json`（如 `20240315_sunny_001_meta.json`），存放于 `data/02_preprocessed/meta/`。
 - **标注JSON**：`YYYYMMDD_天气_序号.json`（如 `20240315_sunny_001.json`）
