@@ -6,7 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.3 无人机参数解析+轻量化矫正脚本开发">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/preprocess/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -42,7 +42,7 @@
   }
 }</component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="AISelfReview" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
@@ -252,7 +252,7 @@
       <workItem from="1777778554293" duration="3825000" />
       <workItem from="1777782589950" duration="61000" />
       <workItem from="1777793231678" duration="364000" />
-      <workItem from="1777793902722" duration="2551000" />
+      <workItem from="1777793902722" duration="3637000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -470,7 +470,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777795724108</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="5.3 无人机参数解析+轻量化矫正脚本开发">
+      <option name="closed" value="true" />
+      <created>1777796678135</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1777796678135</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
