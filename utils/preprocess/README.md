@@ -150,4 +150,3 @@ data/02_preprocessed/
 - `brand_mapping.json` （品牌字段映射及传感器默认尺寸库）
 
 根据上述说明即可直接使用，无需额外配置。
-```

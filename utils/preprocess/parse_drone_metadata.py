@@ -289,18 +289,32 @@ def _validate_focal_length(meta: StandardizedMetadata):
     if meta.camera.focal_length is None or meta.camera.focal_length <= 0:
         raise ValueError(f"焦距无效: {meta.camera.focal_length}")
 
-# ─────────── 白平衡归一卷标 ───────────
+# ─────────── 白平衡数值映射 ───────────
+_WB_CODE_MAP = {
+    "0": "Auto",
+    "1": "Manual",
+    "2": "Daylight",
+    "3": "Cloudy",
+    "4": "Tungsten",
+    "5": "Fluorescent",
+    "6": "Flash",
+    "7": "Shade",
+    "8": "Custom",
+    "9": "Kelvin",
+}
+
 def _normalize_white_balance(wb_raw: str) -> str:
-    """将可能出现的自动白平衡变体统一为 'Auto'，包括数字代码 0 等。"""
+    """将数字代码或字符串变体统一为可读的白平衡模式"""
     if not wb_raw:
         return "Unknown"
-    s = str(wb_raw).strip().lower()
-    # 数字代码 0 代表自动
-    if s == "0":
+    s = str(wb_raw).strip()
+    # 纯数字映射
+    if s.isdigit() and s in _WB_CODE_MAP:
+        return _WB_CODE_MAP[s]
+    s_lower = s.lower()
+    if "auto" in s_lower or "awb" in s_lower:
         return "Auto"
-    if "auto" in s or "awb" in s:
-        return "Auto"
-    return str(wb_raw)
+    return s
 
 # ==================== 从图像提取（主接口） ====================
 def parse_drone_metadata_from_image(image_path: str,
@@ -348,7 +362,6 @@ def parse_drone_metadata_from_image(image_path: str,
         return None
 
     # 通用相机信息：传感器尺寸留空，由品牌映射表补充
-    # 白平衡：覆盖常见的 EXIF/XMP 标签，特别是 DJI 可能使用 EXIF:WhitePoint
     camera = CameraInfo(
         make=get_tag("EXIF:Make", "MakerNotes:Make"),
         model=get_tag("EXIF:Model", "MakerNotes:Model"),
@@ -358,12 +371,13 @@ def parse_drone_metadata_from_image(image_path: str,
         image_width=safe_int(get_tag("EXIF:ImageWidth", "File:ImageWidth")),
         image_height=safe_int(get_tag("EXIF:ImageHeight", "File:ImageHeight")),
         white_balance=_normalize_white_balance(
-            str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
+            str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
         ),
         dewarp_data=get_tag("XMP-drone-dji:DewarpData")
     )
 
-    # 品牌特有标签补充
+    # ─────────── 品牌特有标签补充 ───────────
+
     if brand == "DJI":
         def get_dji(prefixed, plain):
             val = get_tag(prefixed)
@@ -395,6 +409,27 @@ def parse_drone_metadata_from_image(image_path: str,
         if wb_dji:
             camera.white_balance = _normalize_white_balance(str(wb_dji))
 
+    elif brand == "Skydio":
+        # Skydio XMP 命名空间：XMP-drone-skydio
+        gps = GPSInfo(
+            latitude=safe_float(get_tag("XMP-drone-skydio:GPSLatitude", "EXIF:GPSLatitude")),
+            longitude=safe_float(get_tag("XMP-drone-skydio:GPSLongitude", "EXIF:GPSLongitude")),
+            absolute_altitude=safe_float(get_tag("XMP-drone-skydio:AbsoluteAltitude", "EXIF:GPSAltitude")),
+            relative_altitude=safe_float(get_tag("XMP-drone-skydio:RelativeAltitude"))
+        )
+        attitude = AttitudeInfo(
+            roll=safe_float(get_tag("XMP-drone-skydio:FlightRollDegree")),
+            pitch=safe_float(get_tag("XMP-drone-skydio:FlightPitchDegree")),
+            yaw=safe_float(get_tag("XMP-drone-skydio:FlightYawDegree"))
+        )
+        gimbal = GimbalInfo(
+            roll=safe_float(get_tag("XMP-drone-skydio:GimbalRollDegree")),
+            pitch=safe_float(get_tag("XMP-drone-skydio:GimbalPitchDegree"), default=-90.0),
+            yaw=safe_float(get_tag("XMP-drone-skydio:GimbalYawDegree"))
+        )
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
+        camera.white_balance = _normalize_white_balance(wb_raw)
+
     elif brand == "Parrot":
         gps = GPSInfo(
             latitude=safe_float(get_tag("EXIF:GPSLatitude")),
@@ -408,9 +443,11 @@ def parse_drone_metadata_from_image(image_path: str,
             yaw=safe_float(get_tag("XMP-drone-parrot:FlightYawDegree"))
         )
         gimbal = GimbalInfo(
-            pitch=safe_float(get_tag("XMP-drone-parrot:GimbalPitchDegree"), default=-90.0)
+            roll=safe_float(get_tag("XMP-drone-parrot:GimbalRollDegree")),
+            pitch=safe_float(get_tag("XMP-drone-parrot:GimbalPitchDegree"), default=-90.0),
+            yaw=safe_float(get_tag("XMP-drone-parrot:GimbalYawDegree"))
         )
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     elif brand == "Autel":
@@ -420,21 +457,38 @@ def parse_drone_metadata_from_image(image_path: str,
             absolute_altitude=safe_float(get_tag("EXIF:GPSAltitude")),
             relative_altitude=safe_float(get_tag("XMP-drone-autel:RelativeAltitude"))
         )
-        attitude = AttitudeInfo()
-        gimbal = GimbalInfo(pitch=-90.0)
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
+        attitude = AttitudeInfo(
+            roll=safe_float(get_tag("XMP-drone-autel:FlightRollDegree")),
+            pitch=safe_float(get_tag("XMP-drone-autel:FlightPitchDegree")),
+            yaw=safe_float(get_tag("XMP-drone-autel:FlightYawDegree"))
+        )
+        gimbal = GimbalInfo(
+            roll=safe_float(get_tag("XMP-drone-autel:GimbalRollDegree")),
+            pitch=safe_float(get_tag("XMP-drone-autel:GimbalPitchDegree"), default=-90.0),
+            yaw=safe_float(get_tag("XMP-drone-autel:GimbalYawDegree"))
+        )
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     else:
+        # 通用回退：尝试所有已知 EXIF/XMP 标签
         gps = GPSInfo(
             latitude=safe_float(get_tag("EXIF:GPSLatitude")),
             longitude=safe_float(get_tag("EXIF:GPSLongitude")),
             absolute_altitude=safe_float(get_tag("EXIF:GPSAltitude")),
-            relative_altitude=0.0
+            relative_altitude=safe_float(get_tag("XMP:RelativeAltitude"))
         )
-        attitude = AttitudeInfo()
-        gimbal = GimbalInfo(pitch=-90.0)
-        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance", "EXIF:WhitePoint") or "")
+        attitude = AttitudeInfo(
+            roll=safe_float(get_tag("XMP:FlightRollDegree")),
+            pitch=safe_float(get_tag("XMP:FlightPitchDegree")),
+            yaw=safe_float(get_tag("XMP:FlightYawDegree"))
+        )
+        gimbal = GimbalInfo(
+            roll=safe_float(get_tag("XMP:GimbalRollDegree")),
+            pitch=safe_float(get_tag("XMP:GimbalPitchDegree"), default=-90.0),
+            yaw=safe_float(get_tag("XMP:GimbalYawDegree"))
+        )
+        wb_raw = str(get_tag("EXIF:WhiteBalance", "MakerNotes:WhiteBalance", "WhiteBalance") or "")
         camera.white_balance = _normalize_white_balance(wb_raw)
 
     # 使用传感器特征库补充缺失的物理尺寸

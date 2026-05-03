@@ -118,9 +118,11 @@ def validate_spatial(meta: StandardizedMetadata,
 
 # ─────────── GSD 计算 ───────────
 def compute_gsd(meta: StandardizedMetadata) -> Optional[float]:
+    """计算理论 GSD（米/像素），高度或传感器尺寸缺失时返回 None 并警告"""
     rel_alt = meta.gps.relative_altitude
     if rel_alt is None or rel_alt <= 0:
-        raise ValueError("相对高度缺失或无效，无法计算 GSD")
+        logger.warning(f"相对高度缺失或无效（{rel_alt}），GSD 将设为 null")
+        return None
     focal_m = meta.camera.focal_length / 1000.0
     sensor_w = meta.camera.sensor_width
     sensor_h = meta.camera.sensor_height
@@ -222,7 +224,7 @@ def process_single_image(raw_image_path: str,
     # 1. 提取元数据
     meta = parse_drone_metadata_from_image(raw_image_path)
 
-    # 2. 姿态与白平衡校验（传入 mode 以决定对 Unknown 白平衡的处理）
+    # 2. 姿态与白平衡校验
     validate_attitude(meta)
     validate_white_balance(meta, mode)
 
@@ -250,7 +252,7 @@ def process_single_image(raw_image_path: str,
     else:
         new_baseline = baseline_focal_length
 
-    # 5. GSD 计算（此时图像尺寸已是真实值）
+    # 5. GSD 计算（高度缺失时不再抛出异常）
     gsd = compute_gsd(meta)
 
     # 6. 缩放填充
@@ -267,12 +269,37 @@ def process_batch(raw_dir: str,
                   check_focal: bool = False,
                   ref_lat: Optional[float] = None,
                   ref_lon: Optional[float] = None,
-                  ref_alt: Optional[float] = None):
+                  ref_alt: Optional[float] = None,
+                  gps_threshold: float = 5.0,
+                  alt_threshold_percent: float = 10.0):
+    """
+    批量处理 raw_dir 下所有 .RAW 和 .DNG 文件。
+    若启用焦距校验，将预先扫描所有文件以确定基准焦距。
+    """
     raw_files = list(Path(raw_dir).glob("*.RAW")) + list(Path(raw_dir).glob("*.DNG"))
     if not raw_files:
         logger.warning(f"{raw_dir} 中未找到 RAW/DNG 文件")
         return
+
     baseline = None
+    # 若需要焦距校验，先确定基准焦距
+    if check_focal and mode == "user":
+        logger.info("焦距校验已启用，正在确定基准焦距...")
+        for raw_path in raw_files:
+            try:
+                meta = parse_drone_metadata_from_image(str(raw_path))
+                validate_attitude(meta)
+                validate_white_balance(meta, mode)
+                if meta.camera.focal_length and meta.camera.focal_length > 0:
+                    baseline = meta.camera.focal_length
+                    logger.info(f"基准焦距确定为 {baseline} mm（来自 {raw_path.name}）")
+                    break
+            except Exception:
+                continue
+        if baseline is None:
+            logger.error("无法确定基准焦距：所有文件均未能通过基础校验或缺少有效焦距")
+            return
+
     for raw_path in raw_files:
         try:
             baseline = process_single_image(
@@ -281,7 +308,9 @@ def process_batch(raw_dir: str,
                 mode=mode,
                 check_focal_consistency=check_focal,
                 baseline_focal_length=baseline,
-                ref_lat=ref_lat, ref_lon=ref_lon, ref_alt=ref_alt
+                ref_lat=ref_lat, ref_lon=ref_lon, ref_alt=ref_alt,
+                gps_threshold=gps_threshold,
+                alt_threshold_percent=alt_threshold_percent
             )
         except Exception as e:
             logger.error(f"处理 {raw_path.name} 出错: {e}")
@@ -319,7 +348,9 @@ def main():
             check_focal=args.check_focal,
             ref_lat=args.ref_lat,
             ref_lon=args.ref_lon,
-            ref_alt=args.ref_alt
+            ref_alt=args.ref_alt,
+            gps_threshold=args.gps_threshold,
+            alt_threshold_percent=args.alt_threshold
         )
     elif args.raw:
         process_single_image(
