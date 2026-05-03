@@ -248,7 +248,7 @@ Phytoplankton_UAV_Project/
 
 ### 6.2 文件命名规范
 
-- **原始图像**：`YYYYMMDD_天气_序号.RAW`（如 `20240315_sunny_001.RAW`）
+- **原始图像**：`YYYYMMDD_天气_序号.RAW`（如 `20240315_sunny_001.DNG(.RAW)`）
 - **预处理图像**：`YYYYMMDD_天气_序号.png`（如 `20240315_sunny_001.png`）
 - **校正图像元数据**：`YYYYMMDD_天气_序号_meta.json`（如 `20240315_sunny_001_meta.json`），存放于 `data/02_preprocessed/meta/`。
 - **标注JSON**：`YYYYMMDD_天气_序号.json`（如 `20240315_sunny_001.json`）

@@ -29,7 +29,7 @@
 - 建立采集台账，记录每张图像的拍摄日期、天气、区域（训练/演示），特别标注演示数据的锁定水体情况。
 
 **2. 图像预处理**
-- 读取 `data/01_raw/` 中的 RAW 图像与 JSON，执行 `utils/preprocess/orthorectify.py` 正射校正主脚本。
+- 读取 `data/01_raw/` 中的 RAW（或DNG）图像，执行 `utils/preprocess/orthorectify.py` 正射校正主脚本。
 - 输出校正 PNG 图像至 `data/02_preprocessed/images/`，同时输出包含 GSD 等信息的元数据文件至 `data/02_preprocessed/meta/`。
 - 确保元数据记录的 GSD 有效，为后续面积计算提供依据。
 
