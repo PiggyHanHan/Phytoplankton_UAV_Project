@@ -39,7 +39,7 @@
 2. `models/forecast/region_seasonal_defaults.json` —— 全国各省份四季生物学默认值知识库。
 3. `models/forecast/degradation_analysis.py` 及退化性分析报告。
 4. 《模型参数说明书》（含默认值来源及降级逻辑说明）。
-5. `utils/partition/ecological_zone_partition.py` —— 生态分区与分区统计脚本。
+5. `utils/partition/ecological_zone_partition.py` —— 生态分区与分区统计脚本（可选）。
 6. 标准化预测数值数据（`outputs/quantifications/`）。
 7. 仿真生成的预测掩码图（`outputs/masks/`）。
 8. 水华爆发风险等级评估报告。
