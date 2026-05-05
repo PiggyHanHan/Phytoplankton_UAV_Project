@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.3 刘俊辉方案升级（降工作量 增深度）">
+    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.5 项目依赖">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -254,7 +254,7 @@
       <workItem from="1777823263694" duration="1324000" />
       <workItem from="1777970560520" duration="4000" />
       <workItem from="1777970710362" duration="250000" />
-      <workItem from="1777991718587" duration="435000" />
+      <workItem from="1777991718587" duration="800000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -544,11 +544,30 @@
       <option name="project" value="LOCAL" />
       <updated>1777970846839</updated>
     </task>
-    <option name="localTasksCounter" value="37" />
+    <task id="LOCAL-00037" summary="5.5 项目依赖">
+      <option name="closed" value="true" />
+      <created>1777992197513</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1777992197513</updated>
+    </task>
+    <task id="LOCAL-00038" summary="5.5 项目依赖">
+      <option name="closed" value="true" />
+      <created>1777992453295</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1777992453295</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="environment.yml" />
   </component>
   <component name="VcsManagerConfiguration">
     <ignored-roots>
@@ -567,7 +586,8 @@
     <MESSAGE value="5.3 无人机参数解析+矫正脚本开发" />
     <MESSAGE value="5.3 无人机参数解析+轻量化矫正脚本开发" />
     <MESSAGE value="5.3 刘俊辉方案升级（降工作量 增深度）" />
-    <option name="LAST_COMMIT_MESSAGE" value="5.3 刘俊辉方案升级（降工作量 增深度）" />
+    <MESSAGE value="5.5 项目依赖" />
+    <option name="LAST_COMMIT_MESSAGE" value="5.5 项目依赖" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
