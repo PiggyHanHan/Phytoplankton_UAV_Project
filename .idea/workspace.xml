@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.3 无人机参数解析+轻量化矫正脚本开发">
+    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.3 刘俊辉方案升级（降工作量 增深度）">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Personal_Readme/Junhui_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Junhui_Readme.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -253,7 +251,8 @@
       <workItem from="1777782589950" duration="61000" />
       <workItem from="1777793231678" duration="364000" />
       <workItem from="1777793902722" duration="5791000" />
-      <workItem from="1777823263694" duration="739000" />
+      <workItem from="1777823263694" duration="1324000" />
+      <workItem from="1777970560520" duration="4000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -519,7 +518,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777799614748</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="5.3 刘俊辉方案升级（降工作量 增深度）">
+      <option name="closed" value="true" />
+      <created>1777824131252</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1777824131252</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -541,7 +548,8 @@
     <MESSAGE value="5.3 正射+fov+白平衡均改为对用户的要求" />
     <MESSAGE value="5.3 无人机参数解析+矫正脚本开发" />
     <MESSAGE value="5.3 无人机参数解析+轻量化矫正脚本开发" />
-    <option name="LAST_COMMIT_MESSAGE" value="5.3 无人机参数解析+轻量化矫正脚本开发" />
+    <MESSAGE value="5.3 刘俊辉方案升级（降工作量 增深度）" />
+    <option name="LAST_COMMIT_MESSAGE" value="5.3 刘俊辉方案升级（降工作量 增深度）" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
