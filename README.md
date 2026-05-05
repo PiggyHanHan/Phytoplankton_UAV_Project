@@ -225,7 +225,7 @@ Phytoplankton_UAV_Project/
 │ ├── masks/
 │ └── quantifications/
 │
-├── requirements.txt
+├── environment.yml
 └── README.md
 ```
 
