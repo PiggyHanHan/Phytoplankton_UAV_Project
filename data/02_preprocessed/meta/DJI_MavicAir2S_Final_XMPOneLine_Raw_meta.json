@@ -1,0 +1,29 @@
+{
+  "image_stem": "DJI_MavicAir2S_Final_XMPOneLine_Raw",
+  "gsd_m_per_pixel": 0.011101973684210526,
+  "valid_region": {
+    "left": 0.0,
+    "top": 0.16650390625,
+    "right": 1.0,
+    "bottom": 0.8330078125
+  },
+  "camera": {
+    "focal_length_mm": 8.8,
+    "sensor_width_mm": 13.2,
+    "sensor_height_mm": 8.8,
+    "image_width_original": 5472,
+    "image_height_original": 3648,
+    "white_balance": "Daylight"
+  },
+  "attitude": {
+    "gimbal_pitch": -90.0,
+    "gimbal_roll": 0.0,
+    "aircraft_roll": 0.5,
+    "aircraft_pitch": 0.2
+  },
+  "gps": {
+    "latitude": 30.12345,
+    "longitude": 114.56789,
+    "relative_altitude_m": 40.5
+  }
+}
