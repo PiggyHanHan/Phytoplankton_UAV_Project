@@ -4,13 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.5 项目依赖">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/preprocess/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" afterDir="false" />
+    <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.6 2048*2048">
+      <change afterPath="$PROJECT_DIR$/2080ti_linux_environment.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -267,7 +262,7 @@
       <workItem from="1778047128311" duration="372000" />
       <workItem from="1778047514849" duration="176000" />
       <workItem from="1778047703477" duration="173000" />
-      <workItem from="1778047889198" duration="5397000" />
+      <workItem from="1778047889198" duration="5894000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -589,7 +584,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777992652663</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="5.6 2048*2048">
+      <option name="closed" value="true" />
+      <created>1778060392639</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1778060392639</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -616,7 +619,8 @@
     <MESSAGE value="5.3 无人机参数解析+轻量化矫正脚本开发" />
     <MESSAGE value="5.3 刘俊辉方案升级（降工作量 增深度）" />
     <MESSAGE value="5.5 项目依赖" />
-    <option name="LAST_COMMIT_MESSAGE" value="5.5 项目依赖" />
+    <MESSAGE value="5.6 2048*2048" />
+    <option name="LAST_COMMIT_MESSAGE" value="5.6 2048*2048" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
