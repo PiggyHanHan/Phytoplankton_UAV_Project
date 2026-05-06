@@ -71,9 +71,10 @@
   - 校验白平衡模式是否为预设固定值，若为自动则拒绝并提示；
   - 记录并校验焦距是否与**基准值**一致(做一个开关，训练时传入false，用户端默认true)；
   - 假设图像为垂直正射，基于内参计算理论 GSD；
-  - 将原图等比缩放至长边 ≤1024，居中黑边填充为 1024×1024 PNG；
+  - 将原图等比缩放至长边 ≤2048，居中黑边填充为 2048×2048 PNG；
   - 同步输出包含有效GSD、有效区域边界的元数据文件。
   - 注意：**本脚本不执行透视变换或视场畸变矫正**，所有矫正依赖严格的拍摄规范。
+
 - **设计并交付无人机参数解析脚本**：编写 `parse_drone_metadata.py`，供标准化脚本`orthorectify.py`使用，确保 GSD 数据的有效提取。
 - **天气分类模型构建**：使用 **多类天气图片数据集**（存放于 `data/weather_public/`）训练轻量级天气分类模型（ResNet-18），用于自动识别输入航拍图为“晴天”、“阴天”或“雾天”，权重保存至 `models/weather_classifier/best_weather_model.pth`。
 - **多条件分割模型训练**：从 `data/03_labeled/` 读取图像与掩码，按文件名中的天气标签划分三个子数据集，分别训练三个独立的 DeepLabV3+ 语义分割模型，权重分别保存至 `models/deeplabv3plus/sunny/`、`cloudy/`、`hazy/`。**同时使用全部标注数据训练一个不区分天气的统一 DeepLabV3+ 模型，权重保存至 `models/deeplabv3plus/combined/`，并在训练过程中计算并记录 mIoU、Accuracy 等指标。**
@@ -183,7 +184,7 @@ Phytoplankton_UAV_Project/
 │ ├── 01_raw/
 │ │ └── 20240315_sunny_001.DNG ← 直接放原图（RAW / DNG）
 │ ├── 02_preprocessed/
-│ │ ├── images/ # 校正后PNG图像（1024×1024）
+│ │ ├── images/ # 校正后PNG图像（2048×2048）
 │ │ └── meta/ # 校正元数据（含GSD）
 │ ├── 03_labeled/
 │ │ ├── labels_json/ # LabelMe标注JSON
@@ -235,7 +236,7 @@ Phytoplankton_UAV_Project/
 | 目录/文件                                     | 负责模块 | 读取来源 | 输出目标 |
 |:------------------------------------------| :--- | :--- | :--- |
 | `data/01_raw/`                     | 数据模块 | 航拍组采集 | 存放原始RAW图像 |
-| `data/02_preprocessed/images/`            | 数据模块（执行） / AI模块（提供脚本） | `01_raw/` 中的图像+参数 | 校正、缩放、填充后的 1024×1024 PNG 图像 |
+| `data/02_preprocessed/images/`            | 数据模块（执行） / AI模块（提供脚本） | `01_raw/` 中的图像+参数 | 校正、缩放、填充后的 2048×2048 PNG 图像 |
 | `data/02_preprocessed/meta/`              | 数据模块（执行） / AI模块（提供脚本） | 校正缩放参数 | 记录每张图像的 GSD、有效区域边界，供面积计算使用 |
 | `data/03_labeled/`                        | 数据模块 | 预处理图像 | JSON标注与掩码图，供AI模块训练分割模型 |
 | `data/weather_public/`                    | AI视觉模块 | 从公开数据集下载 | 训练天气分类模型的图像数据 |
@@ -290,7 +291,7 @@ Phytoplankton_UAV_Project/
 - **时间格式**：`YYYY-MM-DD`，文件名中日期部分为 `YYYYMMDD`。
 - **浮游植物类别标签**：`microcystis`（微囊藻）、`anabaena`（水华鱼腥藻）、`spirogyra`（水绵）、`other_phyto`（其他浮游植物）、`clear_water`（清水）、`sediment`（泥沙）、`shadow`（阴影）。
 - **天气标签**：`sunny`（晴天）、`cloudy`（阴天）、`hazy`（雾天）。
-- **图像尺寸**：统一为 `1024×1024`。
+- **图像尺寸**：统一为 `2048×2048`。
 - **文件格式**：结构化数据用 JSON/CSV，图像用 PNG，标注文件用 LabelMe 标准 JSON。
 - **相机焦距**：必须在无人机 JSON 中提供 `camera.focal_length`，且数值应为相机实际焦距（换算到35mm等效焦距的说明见后）。连续监测同一池塘时，焦距需保持与首次上传基准值一致。
 - **白平衡**：JSON 中需记录实际使用的白平衡模式，且必须为非自动模式。

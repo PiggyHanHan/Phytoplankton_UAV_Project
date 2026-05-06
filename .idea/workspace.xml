@@ -6,6 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="078fd69c-ee38-4466-85bf-c6030c89741b" name="更改" comment="5.5 项目依赖">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Personal_Readme/Tianyu_Readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/preprocess/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/orthorectify.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/preprocess/parse_drone_metadata.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,28 +55,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.predict.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test.executor&quot;: &quot;Run&quot;,
-    &quot;Python.train.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/PyCharm 2025.2.5/pysaves/项目/Phytoplankton_UAV_Project/data/01_raw&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.predict.executor": "Run",
+    "Python.test.executor": "Run",
+    "Python.train.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "E:/PyCharm 2025.2.5/pysaves/项目/Phytoplankton_UAV_Project",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.github.copilot.settings.keymap.KeymapConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\PyCharm 2025.2.5\pysaves\项目\Phytoplankton_UAV_Project" />
       <recent name="E:\PyCharm 2025.2.5\pysaves\项目\Phytoplankton_UAV_Project\data\01_raw" />
     </key>
   </component>
@@ -255,6 +261,13 @@
       <workItem from="1777970560520" duration="4000" />
       <workItem from="1777970710362" duration="250000" />
       <workItem from="1777991718587" duration="800000" />
+      <workItem from="1777992542676" duration="134000" />
+      <workItem from="1778046666251" duration="8000" />
+      <workItem from="1778046686336" duration="395000" />
+      <workItem from="1778047128311" duration="372000" />
+      <workItem from="1778047514849" duration="176000" />
+      <workItem from="1778047703477" duration="173000" />
+      <workItem from="1778047889198" duration="5397000" />
     </task>
     <task id="LOCAL-00001" summary="初始本地提交">
       <option name="closed" value="true" />
@@ -560,7 +573,23 @@
       <option name="project" value="LOCAL" />
       <updated>1777992453295</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="5.5 项目依赖">
+      <option name="closed" value="true" />
+      <created>1777992565011</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1777992565011</updated>
+    </task>
+    <task id="LOCAL-00040" summary="5.5 项目依赖">
+      <option name="closed" value="true" />
+      <created>1777992652663</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1777992652663</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -36,8 +36,8 @@ except ImportError:
 from parse_drone_metadata import parse_drone_metadata_from_image, StandardizedMetadata
 
 # ─────────── 配置 ───────────
-IMAGE_SIZE = 1024
-MAX_LONG_EDGE = 1024
+IMAGE_SIZE = 2048
+
 ALLOWED_PITCH_DEVIATION = 3.0
 ALLOWED_ROLL_DEVIATION = 2.0
 RAW_DECODE_USE_CAMERA_WB = True
@@ -165,7 +165,7 @@ def resize_and_pad(image: Image.Image) -> Tuple[Image.Image, Tuple[float, float,
     return padded, boundary
 
 def save_outputs(image: Image.Image, image_stem: str, output_dir: str,
-                 gsd: Optional[float], valid_region: Tuple[float, ...],
+                 gsd: Optional[float], valid_region: Tuple[float, float, float, float],
                  meta_obj: StandardizedMetadata):
     out_dir = Path(output_dir)
     img_dir = out_dir / "images"

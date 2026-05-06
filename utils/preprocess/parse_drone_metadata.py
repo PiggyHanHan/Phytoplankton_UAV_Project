@@ -182,7 +182,7 @@ def parse_drone_metadata(json_path: str, mapping_file: str = None) -> Standardiz
             camera=CameraInfo(
                 make=raw.get("camera", {}).get("make"),
                 model=raw.get("camera", {}).get("model"),
-                focal_length=float(raw["camera"]["focal_length"]),
+                focal_length=safe_float(raw.get("camera", {}).get("focal_length"), default=None),
                 sensor_width=raw.get("camera", {}).get("sensor_width"),
                 sensor_height=raw.get("camera", {}).get("sensor_height"),
                 image_width=raw.get("camera", {}).get("image_width"),
@@ -279,13 +279,13 @@ def _inject_sensor_defaults(camera: CameraInfo, brand_config: Dict):
             camera.sensor_height = defaults.get("sensor_height")
         logger.info(f"已注入传感器尺寸默认值（型号匹配）: {camera.model} → {camera.sensor_width}x{camera.sensor_height} mm")
         return
-    # 回退：尝试从 EXIF 或 MakerNote 中提取传感器描述，匹配通用条目
-    desc = None
-    if camera.model:
-        desc = sensor_defaults.get(camera.model)  # 已经试过，这里是 None
-    if desc is None and camera.model:
-        # 某些元数据可能包含传感器描述（如 "1-inch CMOS"），可在此扩展
-        pass
+
+
+
+    # 回退：若传感器尺寸仍缺失，记录警告（将来可在此处根据传感器描述符匹配通用条目）
+
+
+
     logger.warning("未能为当前相机型号匹配传感器尺寸，GSD 将可能为 null")
 
 def _validate_focal_length(meta: StandardizedMetadata):

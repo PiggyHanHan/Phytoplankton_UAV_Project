@@ -7,7 +7,7 @@
 - **智能白平衡识别**：自动适配不同相机/无人机写入路径（`EXIF:WhiteBalance`、`EXIF:WhitePoint`、`XMP-drone-dji:WhiteBalance` 等），并将 `Auto`、`AWB`、数字代码 `0` 等自动白平衡变体统一标记为 `Auto`，方便后续校验。  
 - **图像尺寸自动修正**：RAW/DNG 解码后使用真实像素尺寸覆盖 EXIF 中可能错误的缩略图尺寸，确保地面采样距离（GSD）计算准确。  
 - **自动校验**：姿态（云台俯仰、横滚）、白平衡、可选焦距一致性、可选空间位置（GPS/高度）校验，并计算理论 GSD。  
-- **标准化输出**：将 RAW 图像解码、等比缩放至长边 ≤1024（不放大）、居中黑边填充为 1024×1024 PNG，同步生成包含 GSD、有效区域、原始尺寸等信息的元数据 JSON。
+- **标准化输出**：将 RAW 图像解码、等比缩放至长边 ≤2048（不放大）、居中黑边填充为 2048×2048 PNG，同步生成包含 GSD、有效区域、原始尺寸等信息的元数据 JSON。
 
 支持 **“用户端”** 和 **“训练数据”** 两种处理模式，适配不同的校验强度。
 
@@ -60,12 +60,7 @@ YYYYMMDD_天气_序号.RAW (或 .DNG)
 ### 5.1 用户端单张处理（全规范校验）
 
 ```bash
-python utils/preprocess/orthorectify.py \
-  --raw data/01_raw/20240315_sunny_001.DNG \
-  --out data/02_preprocessed \
-  --mode user \
-  --ref-lat 30.12345 --ref-lon 114.56789 --ref-alt 40.5 \
-  --check-focal
+python utils/preprocess/orthorectify.py --raw data/01_raw/20240315_sunny_001.DNG --out data/02_preprocessed --mode user --ref-lat 30.12345 --ref-lon 114.56789 --ref-alt 40.5 --check-focal
 ```
 - `--ref-lat`、`--ref-lon`、`--ref-alt`：池塘首次上传时记录的基准值（纬度、经度、相对高度，单位：米）。  
 - `--check-focal`：强制要求焦距与首次上传的基准一致（偏差超过 0.5 mm 则拒绝）。  
@@ -74,22 +69,14 @@ python utils/preprocess/orthorectify.py \
 ### 5.2 用户端批量处理（同一池塘多次飞行）
 
 ```bash
-python utils/preprocess/orthorectify.py \
-  --raw-dir data/01_raw \
-  --out data/02_preprocessed \
-  --mode user \
-  --ref-lat 30.12345 --ref-lon 114.56789 --ref-alt 40.5 \
-  --check-focal
+python utils/preprocess/orthorectify.py --raw-dir data/01_raw --out data/02_preprocessed --mode user --ref-lat 30.12345 --ref-lon 114.56789 --ref-alt 40.5 --check-focal
 ```
 脚本将自动遍历 `data/01_raw` 下的所有 `.RAW` 和 `.DNG` 文件，逐张处理；遇到校验失败的文件会跳过并记录日志，不会中断整体任务。
 
 ### 5.3 训练数据批量处理（放宽限制）
 
 ```bash
-python utils/preprocess/orthorectify.py \
-  --raw-dir data/01_raw \
-  --out data/02_preprocessed \
-  --mode training
+python utils/preprocess/orthorectify.py --raw-dir data/01_raw --out data/02_preprocessed --mode training
 ```
 - 不限制拍摄位置、高度、焦距，仅保证图像来自垂直俯拍且白平衡锁定。
 
@@ -102,7 +89,7 @@ python utils/preprocess/orthorectify.py \
 ```
 data/02_preprocessed/
 ├── images/
-│   └── 20240315_sunny_001.png      ← 1024×1024，居中有效区域
+│   └── 20240315_sunny_001.png      ← 2048×2048，居中有效区域
 └── meta/
     └── 20240315_sunny_001_meta.json
 ```
@@ -112,7 +99,7 @@ data/02_preprocessed/
 | 字段 | 说明 |
 |:---|:---|
 | `gsd_m_per_pixel` | 地面采样距离（米/像素），基于真实图像尺寸计算；若传感器尺寸未知则为 `null` |
-| `valid_region` | 归一化边界（左、上、右、下），用于从 1024 画布中提取有效图像区域 |
+| `valid_region` | 归一化边界（左、上、右、下），用于从 2048 画布中提取有效图像区域 |
 | `camera.focal_length_mm` | 实际焦距（mm） |
 | `camera.white_balance` | 白平衡模式（例如 `Daylight`、`Cloudy`、`Sunny`、`Auto` 等；若无法确定则为 `Unknown`） |
 | `camera.image_width_original` / `image_height_original` | 真实解码后的原始图像尺寸（像素） |
