@@ -7,11 +7,11 @@ from PIL import Image
 from torchvision import models
 
 # ================== 配置（与训练完全一致）==================
-TRAIN_CLASS_NAMES = ["cloudy", "haze", "sunny"]           # 训练时文件夹字母序
-OUTPUT_CLASS_NAMES = ["sunny", "cloudy", "haze"]         # 项目展示顺序
+TRAIN_CLASS_NAMES = ["cloudy", "hazy", "sunny"]           # 训练时文件夹字母序
+OUTPUT_CLASS_NAMES = ["sunny", "cloudy", "hazy"]         # 项目展示顺序
 TRAIN_TO_OUTPUT_IDX = [OUTPUT_CLASS_NAMES.index(cls) for cls in TRAIN_CLASS_NAMES]
 
-MODEL_PATH = "best_weather_model.pth"                     # 默认模型路径
+MODEL_PATH = "origin/best_weather_model.pth"  # 默认模型路径
 TEST_IMG_DIR = "testimgs"                                 # 测试图片文件夹（相对于当前脚本）
 IMG_SIZE = 224
 # ========================================================

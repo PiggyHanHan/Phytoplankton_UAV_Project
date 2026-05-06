@@ -7,8 +7,8 @@ from PIL import Image
 from torchvision import models
 
 # ================== 配置（与训练完全一致）==================
-TRAIN_CLASS_NAMES = ["cloudy", "haze", "sunny"]
-OUTPUT_CLASS_NAMES = ["sunny", "cloudy", "haze"]
+TRAIN_CLASS_NAMES = ["cloudy", "hazy", "sunny"]
+OUTPUT_CLASS_NAMES = ["sunny", "cloudy", "hazy"]
 TRAIN_TO_OUTPUT_IDX = [OUTPUT_CLASS_NAMES.index(cls) for cls in TRAIN_CLASS_NAMES]
 IMG_SIZE = 224
 # ========================================================
@@ -45,7 +45,7 @@ def predict_weather(model, image_path, device='cpu'):
 
     返回:
         (predicted_class, confidence, probs_dict)
-        - predicted_class: str，项目约定类别 ('sunny'/'cloudy'/'haze')
+        - predicted_class: str，项目约定类别 ('sunny'/'cloudy'/'hazy')
         - confidence: float，置信度
         - probs_dict: dict，包含三个类别的概率，键为项目约定类别名
     """

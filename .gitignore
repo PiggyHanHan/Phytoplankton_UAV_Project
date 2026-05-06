@@ -1,0 +1,19 @@
+# Python 编译缓存
+__pycache__/
+*.py[cod]
+*.pyo
+
+# IDE - PyCharm
+.idea/
+
+# 操作系统自动生成文件
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# 项目数据（数据库、图片等不提交的内容）
+data/weather_public/
+
+# 日志
+*.log

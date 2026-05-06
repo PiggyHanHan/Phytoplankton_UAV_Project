@@ -1,19 +1,24 @@
 # models/weather_classifier/train.py
+# 基于自有数据集（data/02_preprocessed/images/）的天气分类训练脚本
+# 图片命名规范：YYYYMMDD_天气_序号.png（如 20240315_sunny_001.png）
+# 天气字段取值：sunny / cloudy / hazy
+
 import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, random_split
-from torchvision import datasets, transforms, models
+from torch.utils.data import Dataset, DataLoader, random_split
+from torchvision import transforms, models
+from PIL import Image
 from tqdm import tqdm
 
 # ================== 配置区 ==================
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATA_ROOT = os.path.join(PROJECT_ROOT, "data", "weather_public")
+DATA_DIR = os.path.join(PROJECT_ROOT, "data", "02_preprocessed", "images")
 
-# 训练时类别顺序与文件夹字母序完全一致（cloudy, haze, sunny）
-TRAIN_CLASS_NAMES = ["cloudy", "haze", "sunny"]
-NUM_CLASSES = len(TRAIN_CLASS_NAMES)
+# 天气类别（必须与 inference.py 中 TRAIN_CLASS_NAMES 顺序完全一致）
+WEATHER_CLASSES = ["cloudy", "hazy", "sunny"]
+NUM_CLASSES = len(WEATHER_CLASSES)
 
 BATCH_SIZE = 32
 EPOCHS = 20
@@ -22,7 +27,69 @@ NUM_WORKERS = 4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # ===========================================
 
+
+class WeatherDataset(Dataset):
+    """按项目命名规范 YYYYMMDD_天气_序号.png 解析天气标签的 Dataset"""
+
+    def __init__(self, image_dir, class_names, transform=None):
+        self.image_dir = image_dir
+        self.class_names = class_names
+        self.transform = transform
+
+        valid_exts = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif')
+        all_files = [
+            f for f in os.listdir(image_dir)
+            if f.lower().endswith(valid_exts)
+        ]
+
+        self.samples = []
+        skipped = []
+        for fname in sorted(all_files):
+            label = self._extract_label(fname)
+            if label is not None:
+                self.samples.append((fname, label))
+            else:
+                skipped.append(fname)
+
+        if skipped:
+            print(f"警告：以下文件未提取到天气标签，已跳过 ({len(skipped)} 个):")
+            for s in skipped:
+                print(f"  - {s}")
+
+        if not self.samples:
+            raise RuntimeError(
+                f"在 {image_dir} 中没有找到符合命名规范的图片。"
+                f"请确保文件名格式为 YYYYMMDD_天气_序号.png，天气取值为: {class_names}"
+            )
+
+        print(f"从 {image_dir} 加载了 {len(self.samples)} 张带标签图片")
+
+    def _extract_label(self, fname):
+        """按 YYYYMMDD_天气_序号 解析天气字段，返回类别索引"""
+        stem = os.path.splitext(fname)[0]
+        parts = stem.split('_')
+        # 文件名格式：YYYYMMDD_天气_序号 → 至少 3 段，天气在第 2 段（索引 1）
+        if len(parts) < 3:
+            return None
+        weather_raw = parts[1].lower()
+        if weather_raw not in self.class_names:
+            return None
+        return self.class_names.index(weather_raw)
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        fname, label = self.samples[idx]
+        path = os.path.join(self.image_dir, fname)
+        image = Image.open(path).convert('RGB')
+        if self.transform:
+            image = self.transform(image)
+        return image, label
+
+
 def prepare_data():
+    """准备训练和验证 DataLoader"""
     train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.RandomHorizontalFlip(),
@@ -38,27 +105,21 @@ def prepare_data():
                              std=[0.229, 0.224, 0.225])
     ])
 
-    if not os.path.exists(DATA_ROOT):
-        print(f"错误：数据目录 {DATA_ROOT} 不存在！")
+    if not os.path.exists(DATA_DIR):
+        print(f"错误：数据目录 {DATA_DIR} 不存在！")
         return None, None
 
-    # 直接加载，不人为调整标签顺序
-    full_train = datasets.ImageFolder(root=DATA_ROOT, transform=train_transform)
-    full_val = datasets.ImageFolder(root=DATA_ROOT, transform=val_transform)
-
-    # 检查文件夹类别是否与预期一致
-    print(f"检测到文件夹类别（按字母序）: {full_train.classes}")
-    if full_train.classes != TRAIN_CLASS_NAMES:
-        print(f"警告：实际文件夹类别 {full_train.classes} 与代码中 TRAIN_CLASS_NAMES 不一致，请修改 TRAIN_CLASS_NAMES。")
-        return None, None
-
-    print(f"共 {len(full_train)} 张图片，类别: {TRAIN_CLASS_NAMES}")
+    full_dataset = WeatherDataset(DATA_DIR, WEATHER_CLASSES, transform=train_transform)
+    val_dataset = WeatherDataset(DATA_DIR, WEATHER_CLASSES, transform=val_transform)
 
     # 划分训练/验证集（80%/20%）
-    train_size = int(0.8 * len(full_train))
-    val_size = len(full_train) - train_size
-    train_dataset, _ = random_split(full_train, [train_size, val_size])
-    _, val_dataset = random_split(full_val, [train_size, val_size])
+    n_total = len(full_dataset)
+    train_size = int(0.8 * n_total)
+    val_size = n_total - train_size
+    print(f"训练集: {train_size} 张, 验证集: {val_size} 张")
+
+    train_dataset, _ = random_split(full_dataset, [train_size, val_size])
+    _, val_dataset = random_split(val_dataset, [train_size, val_size])
 
     train_loader = DataLoader(
         train_dataset, batch_size=BATCH_SIZE, shuffle=True,
@@ -71,24 +132,32 @@ def prepare_data():
         persistent_workers=True if NUM_WORKERS > 0 else False
     )
 
-    print(f"训练集样本数: {len(train_dataset)}")
-    print(f"验证集样本数: {len(val_dataset)}")
+    # 打印类别分布
+    label_counts = {}
+    for _, lbl in full_dataset.samples:
+        cls = WEATHER_CLASSES[lbl]
+        label_counts[cls] = label_counts.get(cls, 0) + 1
+    print(f"各类别样本数: {label_counts}")
+
     return train_loader, val_loader
 
+
 def build_model():
+    """构建 ResNet18 三分类模型"""
     model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     model.fc = nn.Linear(model.fc.in_features, NUM_CLASSES)
     return model.to(DEVICE)
+
 
 def train():
     train_loader, val_loader = prepare_data()
     if train_loader is None:
         return
 
-    # 验证标签映射（可选打印）
+    # 验证标签映射
     images, labels = next(iter(train_loader))
     print("训练 batch 标签示例:", labels[:10].tolist())
-    print("对应训练时类别:", [TRAIN_CLASS_NAMES[l] for l in labels[:10].tolist()])
+    print("对应类别:", [WEATHER_CLASSES[l] for l in labels[:10].tolist()])
 
     model = build_model()
     criterion = nn.CrossEntropyLoss()
@@ -99,7 +168,7 @@ def train():
     save_path = os.path.join(os.path.dirname(__file__), "best_weather_model.pth")
 
     for epoch in range(EPOCHS):
-        # 训练
+        # 训练阶段
         model.train()
         total_loss = 0.0
         correct = total = 0
@@ -118,7 +187,7 @@ def train():
             loop.set_postfix(loss=total_loss/(total//BATCH_SIZE + 1), acc=100*correct/total)
         train_acc = 100 * correct / total
 
-        # 验证
+        # 验证阶段
         model.eval()
         val_correct = val_total = 0
         with torch.no_grad():
@@ -139,6 +208,7 @@ def train():
         scheduler.step()
 
     print(f"训练完成！最佳验证准确率: {best_acc:.2f}%")
+
 
 if __name__ == "__main__":
     train()
